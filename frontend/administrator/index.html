@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrator Operations Portal — CaféNest</title>
+    <meta name="description" content="Central cafe management dashboard for orders, menu, tables, inventory, suppliers, and sales analytics.">
+    <link rel="stylesheet" href="/frontend/assets/css/style.css">
+</head>
+<body style="background: var(--bg);">
+
+    <!-- Admin Container -->
+    <div class="admin-layout" id="adminApp">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 2rem;">
+                <span style="font-size: 1.8rem;">☕</span>
+                <div>
+                    <h2 style="font-size: 1.35rem; color: #fff; line-height: 1.1;">CaféNest</h2>
+                    <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #F8C39B;">Operations Portal</span>
+                </div>
+            </div>
+
+            <!-- Current Staff Profile snippet -->
+            <div style="background: rgba(255,255,255,0.08); padding: 0.85rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.8rem; display: flex; align-items: center; gap: 0.8rem;" id="staffBadgeCard">
+                <div style="width: 38px; height: 38px; border-radius: var(--radius-full); background: var(--secondary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; color: #fff;" id="staffAvatar">
+                    A
+                </div>
+                <div>
+                    <div style="font-weight: 700; font-size: 0.92rem; color: #fff;" id="staffNameDisplay">Om Watane</div>
+                    <div style="font-size: 0.75rem; color: #D2C4BD;" id="staffRoleDisplay">Lead Admin</div>
+                </div>
+            </div>
+
+            <nav style="display: flex; flex-direction: column; flex: 1;">
+                <div class="admin-nav-item active" data-tab="dashboard" onclick="switchAdminTab('dashboard')">
+                    <span>📊</span> <span>Dashboard Overview</span>
+                </div>
+                <div class="admin-nav-item" data-tab="orders" onclick="switchAdminTab('orders')">
+                    <span>📋</span> <span>Live Orders Queue</span>
+                </div>
+                <div class="admin-nav-item" data-tab="menu" onclick="switchAdminTab('menu')">
+                    <span>🥐</span> <span>Menu & Categories</span>
+                </div>
+                <div class="admin-nav-item" data-tab="tables" onclick="switchAdminTab('tables')">
+                    <span>🪑</span> <span>Cafe Tables Grid</span>
+                </div>
+                <div class="admin-nav-item" data-tab="inventory" onclick="switchAdminTab('inventory')">
+                    <span>📦</span> <span>Inventory & Suppliers</span>
+                </div>
+                <div class="admin-nav-item" data-tab="staff" onclick="switchAdminTab('staff')">
+                    <span>👥</span> <span>Staff Management</span>
+                </div>
+                <div class="admin-nav-item" data-tab="reports" onclick="switchAdminTab('reports')">
+                    <span>📈</span> <span>Sales & Analytics</span>
+                </div>
+                <div class="admin-nav-item" onclick="window.location.href='/'" style="margin-top: auto;">
+                    <span>🏠</span> <span>Customer Front Page</span>
+                </div>
+                <div class="admin-nav-item" onclick="handleLogout()" style="color: #FFB3BA;">
+                    <span>🚪</span> <span>Sign Out</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            <!-- 1. DASHBOARD OVERVIEW TAB -->
+            <section id="tabContent-dashboard" class="tab-pane">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem;">
+                    <div>
+                        <span class="section-tag">Real-Time Metrics</span>
+                        <h1 style="font-size: 2rem; color: var(--primary);">Cafe Operations Dashboard</h1>
+                    </div>
+                    <button onclick="refreshDashboard()" class="btn btn-secondary btn-sm">🔄 Refresh Data</button>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">💰</div>
+                        <div class="metric-info">
+                            <h5>Today's Sales</h5>
+                            <div class="metric-value" id="kpiTodaySales">₹0.00</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">🔔</div>
+                        <div class="metric-info">
+                            <h5>Active Orders</h5>
+                            <div class="metric-value" id="kpiActiveOrders">0</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">🪑</div>
+                        <div class="metric-info">
+                            <h5>Occupied Tables</h5>
+                            <div class="metric-value" id="kpiTablesRatio">0 / 12</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon" style="color: var(--non-veg);">⚠️</div>
+                        <div class="metric-info">
+                            <h5>Low Stock Alerts</h5>
+                            <div class="metric-value" id="kpiLowStock">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders Queue -->
+                <div class="data-table-container">
+                    <div class="table-header-bar">
+                        <h3 style="font-size: 1.2rem;">Live Kitchen Queue</h3>
+                        <a href="javascript:void(0)" onclick="switchAdminTab('orders')" style="font-size: 0.85rem; color: var(--secondary); font-weight: 600;">View All Orders ➔</a>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order Ref</th>
+                                <th>Time</th>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Quick Advance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashOrdersTbody">
+                            <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading live queue...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Top Popular Items -->
+                <div class="data-table-container">
+                    <div class="table-header-bar">
+                        <h3 style="font-size: 1.2rem;">Top Selling Artisan Delicacies</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Total Quantity Sold</th>
+                                <th>Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashPopularTbody">
+                            <!-- Popular items -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 2. LIVE ORDERS QUEUE TAB -->
+            <section id="tabContent-orders" class="tab-pane" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <span class="section-tag">Kitchen & Counter</span>
+                        <h1 style="font-size: 2rem; color: var(--primary);">Order Management Queue</h1>
+                    </div>
+                    <div style="display: flex; gap: 0.6rem;">
+                        <button class="cat-pill active" onclick="filterOrderQueue(null, this)">All Orders</button>
+                        <button class="cat-pill" onclick="filterOrderQueue('Pending', this)">Pending</button>
+                        <button class="cat-pill" onclick="filterOrderQueue('Preparing', this)">Preparing</button>
+                        <button class="cat-pill" onclick="filterOrderQueue('Ready', this)">Ready</button>
+                        <button class="cat-pill" onclick="filterOrderQueue('Completed', this)">Completed</button>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order Ref</th>
+                                <th>Date & Time</th>
+                                <th>Customer & Phone</th>
+                                <th>Table / Mode</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Current Status</th>
+                                <th>Update Workflow Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersManagementTbody">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 3. MENU MANAGEMENT TAB -->
+            <section id="tabContent-menu" class="tab-pane" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <span class="section-tag">Menu & Offerings</span>
+                        <h1 style="font-size: 2rem; color: var(--primary);">Menu Item Management</h1>
+                    </div>
+                    <div style="display: flex; gap: 0.8rem;">
+                        <button onclick="openAddCategoryModal()" class="btn btn-secondary btn-sm">+ Add Category</button>
+                        <button onclick="openAddMenuModal()" class="btn btn-primary btn-sm">+ Add New Item</button>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Dietary</th>
+                                <th>Price (₹)</th>
+                                <th>Availability Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menuAdminTbody">
+                            <!-- Menu items -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 4. CAFE TABLES GRID TAB -->
+            <section id="tabContent-tables" class="tab-pane" style="display: none;">
+                <div style="margin-bottom: 1.8rem;">
+                    <span class="section-tag">Floor Plan & Seating</span>
+                    <h1 style="font-size: 2rem; color: var(--primary);">Cafe Tables & Occupancy</h1>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Manage real-time seating availability across all dining areas.</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem;" id="tablesGridContainer">
+                    <!-- Tables cards -->
+                </div>
+            </section>
+
+            <!-- 5. INVENTORY & SUPPLIERS TAB -->
+            <section id="tabContent-inventory" class="tab-pane" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <span class="section-tag">Stock & Supplies</span>
+                        <h1 style="font-size: 2rem; color: var(--primary);">Inventory & Supplier Management</h1>
+                    </div>
+                    <div style="display: flex; gap: 0.8rem;">
+                        <button onclick="openAddSupplierModal()" class="btn btn-secondary btn-sm">+ Add Supplier</button>
+                        <button onclick="openStockMovementModal()" class="btn btn-primary btn-sm">📦 Record Stock Movement</button>
+                    </div>
+                </div>
+
+                <!-- Inventory Stock Table -->
+                <div class="data-table-container">
+                    <div class="table-header-bar">
+                        <h3 style="font-size: 1.2rem;">Current Ingredients & Bean Stock</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Current Stock</th>
+                                <th>Unit</th>
+                                <th>Reorder Level</th>
+                                <th>Supplier</th>
+                                <th>Status Alert</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTbody">
+                            <!-- Inventory items -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Stock Movements Log -->
+                <div class="data-table-container">
+                    <div class="table-header-bar">
+                        <h3 style="font-size: 1.2rem;">Recent Stock Movements Log</h3>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Item</th>
+                                <th>Quantity Change</th>
+                                <th>Reason</th>
+                                <th>Recorded By</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movementsTbody">
+                            <!-- Stock movements -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 6. STAFF MANAGEMENT TAB -->
+            <section id="tabContent-staff" class="tab-pane" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem;">
+                    <div>
+                        <span class="section-tag">Team & Roles</span>
+                        <h1 style="font-size: 2rem; color: var(--primary);">Staff & Employee Management</h1>
+                    </div>
+                    <button onclick="openAddStaffModal()" class="btn btn-primary btn-sm">+ Add Staff Member</button>
+                </div>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTbody">
+                            <!-- Staff list -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 7. SALES & ANALYTICS TAB -->
+            <section id="tabContent-reports" class="tab-pane" style="display: none;">
+                <div style="margin-bottom: 1.8rem;">
+                    <span class="section-tag">Insights & Revenue</span>
+                    <h1 style="font-size: 2rem; color: var(--primary);">Sales Reports & Performance</h1>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <!-- Sales by Category -->
+                    <div class="cart-card">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 1.2rem;">Revenue by Category</h3>
+                        <div id="categoryReportList" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                            <!-- Category report -->
+                        </div>
+                    </div>
+
+                    <!-- Payment Methods Distribution -->
+                    <div class="cart-card">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 1.2rem;">Simulated Payment Methods</h3>
+                        <div id="paymentMethodsReport" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                            <!-- Payment methods -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Staff Login Modal (If unauthenticated) -->
+    <div class="modal-overlay" id="staffLoginModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 1.3rem;">Staff & Admin Sign In</h3>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleStaffLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Staff Work Email</label>
+                        <input type="email" id="staffEmail" class="form-input" placeholder="admin@cafenest.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="staffPassword" class="form-input" placeholder="Enter password" required>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-amber btn-lg" style="width: 100%;">Authenticate Staff ➔</button>
+                    </div>
+                    <div style="margin-top: 1rem; background: var(--surface-alt); padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.78rem;">
+                        🔑 <strong>Default Admin Credentials:</strong><br>
+                        Email: <code>admin@cafenest.com</code> | Password: <code>admin123</code>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Menu Item Modal -->
+    <div class="modal-overlay" id="menuItemModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="menuModalTitle" style="font-size: 1.25rem;">Add Menu Item</h3>
+                <button onclick="closeModal('menuItemModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleSaveMenuItem(event)">
+                    <input type="hidden" id="menuEditId">
+                    <div class="form-group">
+                        <label class="form-label">Item Name</label>
+                        <input type="text" id="menuName" class="form-input" required placeholder="e.g. Honey Cinnamon Flat White">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select id="menuCategorySelect" class="form-select" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Price in INR (₹)</label>
+                        <input type="number" step="0.5" id="menuPrice" class="form-input" required placeholder="e.g. 210.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description & Tasting Notes</label>
+                        <textarea id="menuDesc" class="form-textarea" rows="2" placeholder="Flavors, origin, brew details..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Image URL</label>
+                        <input type="url" id="menuImageUrl" class="form-input" placeholder="https://images.unsplash.com/...">
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 1.5rem;">
+                        <label><input type="checkbox" id="menuIsVeg" checked> Vegetarian</label>
+                        <label><input type="checkbox" id="menuIsAvailable" checked> Available in Stock</label>
+                    </div>
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.8rem;">
+                        <button type="button" onclick="closeModal('menuItemModal')" class="btn btn-secondary btn-sm">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Save Menu Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Movement Modal -->
+    <div class="modal-overlay" id="stockMovementModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 1.25rem;">Record Stock Movement</h3>
+                <button onclick="closeModal('stockMovementModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleSaveStockMovement(event)">
+                    <div class="form-group">
+                        <label class="form-label">Inventory Item</label>
+                        <select id="stockItemSelect" class="form-select" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Quantity Change (+ to Add, - to Deduct)</label>
+                        <input type="number" step="0.1" id="stockQtyChange" class="form-input" required placeholder="e.g. 15.0 or -2.5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reason</label>
+                        <select id="stockReasonSelect" class="form-select" required>
+                            <option value="Restock">Restock (Received delivery)</option>
+                            <option value="Daily Prep Usage">Daily Prep Usage</option>
+                            <option value="Waste / Spoilage">Waste / Spoilage</option>
+                            <option value="Inventory Audit Adjustment">Inventory Audit Adjustment</option>
+                            <option value="Returned">Returned</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes / Batch ID</label>
+                        <input type="text" id="stockNotes" class="form-input" placeholder="e.g. Batch #44 from Blue Tokai">
+                    </div>
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.8rem;">
+                        <button type="button" onclick="closeModal('stockMovementModal')" class="btn btn-secondary btn-sm">Cancel</button>
+                        <button type="submit" class="btn btn-amber btn-sm">Confirm Movement</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Supplier Modal -->
+    <div class="modal-overlay" id="supplierModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 1.25rem;">Add New Supplier</h3>
+                <button onclick="closeModal('supplierModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleSaveSupplier(event)">
+                    <div class="form-group">
+                        <label class="form-label">Supplier Business Name</label>
+                        <input type="text" id="supName" class="form-input" required placeholder="e.g. Malabar Green Mills">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Person</label>
+                        <input type="text" id="supContact" class="form-input" placeholder="e.g. Ramesh Patel">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" id="supPhone" class="form-input" placeholder="+91 9820011223">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Items Supplied</label>
+                        <input type="text" id="supItems" class="form-input" placeholder="e.g. Organic Oat Milk, Cinnamon">
+                    </div>
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.8rem;">
+                        <button type="button" onclick="closeModal('supplierModal')" class="btn btn-secondary btn-sm">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Add Supplier</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Staff Modal -->
+    <div class="modal-overlay" id="staffModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 1.25rem;">Add Staff Member</h3>
+                <button onclick="closeModal('staffModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleSaveStaff(event)">
+                    <div class="form-group">
+                        <label class="form-label">Staff Name</label>
+                        <input type="text" id="newStaffName" class="form-input" required placeholder="e.g. Rohit Patil">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Work Email</label>
+                        <input type="email" id="newStaffEmail" class="form-input" required placeholder="rohit@cafenest.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <select id="newStaffRole" class="form-select">
+                            <option value="Barista">Barista</option>
+                            <option value="Cashier">Cashier</option>
+                            <option value="Waitstaff">Waitstaff</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="newStaffPassword" class="form-input" required minlength="6">
+                    </div>
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.8rem;">
+                        <button type="button" onclick="closeModal('staffModal')" class="btn btn-secondary btn-sm">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Create Staff</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="/frontend/assets/js/app.js"></script>
+    <script src="/frontend/assets/js/admin.js"></script>
+</body>
+</html>

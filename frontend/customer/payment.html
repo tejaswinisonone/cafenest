@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulated Payment — CaféNest</title>
+    <meta name="description" content="Simulated payment demonstration for CaféNest. Supports cash at counter and mock UPI payment options.">
+    <link rel="stylesheet" href="/frontend/assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">
+                <span class="logo-icon">☕</span>
+                <span>CaféNest</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/frontend/customer/menu.html" class="nav-link">Menu & Order</a></li>
+                    <li><a href="/frontend/customer/cart.html" class="nav-link">Cart</a></li>
+                    <li><a href="/frontend/customer/tracking.html" class="nav-link">Track Order</a></li>
+                </ul>
+            </nav>
+            <div class="nav-actions">
+                <div id="navAuthContainer"></div>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 1.5rem 5rem 1.5rem;">
+        <div class="payment-box">
+            <!-- Demonstration Banner -->
+            <div class="demo-banner">
+                <span style="font-size: 1.4rem;">🎓</span>
+                <div>
+                    <strong>College DBMS Lab Demonstration Mode</strong>
+                    <div style="font-size: 0.8rem; opacity: 0.9;">No real UPI transaction, payment gateway, or actual money transfer is processed.</div>
+                </div>
+            </div>
+
+            <!-- Header -->
+            <div style="text-align: center; margin-bottom: 1.8rem;">
+                <span class="section-tag">Payment Simulation</span>
+                <h1 style="font-size: 1.8rem; color: var(--primary); margin: 0.4rem 0;">Complete Your Order</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Order Reference: <strong id="displayOrderRef" style="color: var(--secondary);">#NEST-PENDING</strong>
+                </p>
+                <div style="font-size: 2.2rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem; font-family: 'Playfair Display', serif;" id="displayOrderTotal">
+                    ₹0.00
+                </div>
+            </div>
+
+            <!-- Tabbed Payment Options -->
+            <div class="payment-methods">
+                <div class="pay-tab active" id="tabUpi" onclick="selectPaymentMethod('Simulated_UPI')">
+                    <div style="font-size: 1.5rem; margin-bottom: 0.2rem;">📱</div>
+                    <div>Simulated UPI</div>
+                    <small style="color: var(--text-light); font-size: 0.75rem;">Instant Mock QR</small>
+                </div>
+                <div class="pay-tab" id="tabCash" onclick="selectPaymentMethod('Cash')">
+                    <div style="font-size: 1.5rem; margin-bottom: 0.2rem;">💵</div>
+                    <div>Cash at Counter</div>
+                    <small style="color: var(--text-light); font-size: 0.75rem;">Pay upon serving</small>
+                </div>
+            </div>
+
+            <!-- Method 1: Simulated UPI View -->
+            <div id="viewUpi" class="qr-container">
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary); margin-bottom: 0.8rem;">
+                    Scan Demonstration QR Code
+                </div>
+                
+                <!-- Mock QR Code SVG Graphic -->
+                <div class="qr-code-mock">
+                    <svg width="140" height="140" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="100" height="100" fill="#FFFFFF"/>
+                        <!-- Corner 1 -->
+                        <rect x="10" y="10" width="25" height="25" fill="#2C1E16"/>
+                        <rect x="15" y="15" width="15" height="15" fill="#FFFFFF"/>
+                        <rect x="18" y="18" width="9" height="9" fill="#D97736"/>
+                        <!-- Corner 2 -->
+                        <rect x="65" y="10" width="25" height="25" fill="#2C1E16"/>
+                        <rect x="70" y="15" width="15" height="15" fill="#FFFFFF"/>
+                        <rect x="73" y="18" width="9" height="9" fill="#D97736"/>
+                        <!-- Corner 3 -->
+                        <rect x="10" y="65" width="25" height="25" fill="#2C1E16"/>
+                        <rect x="15" y="70" width="15" height="15" fill="#FFFFFF"/>
+                        <rect x="18" y="73" width="9" height="9" fill="#D97736"/>
+                        <!-- Data clusters -->
+                        <rect x="42" y="15" width="6" height="6" fill="#2C1E16"/>
+                        <rect x="52" y="20" width="6" height="6" fill="#2C1E16"/>
+                        <rect x="42" y="38" width="16" height="16" fill="#D97736"/>
+                        <rect x="46" y="42" width="8" height="8" fill="#FFFFFF"/>
+                        <rect x="15" y="45" width="6" height="6" fill="#2C1E16"/>
+                        <rect x="25" y="52" width="6" height="6" fill="#2C1E16"/>
+                        <rect x="72" y="42" width="6" height="6" fill="#2C1E16"/>
+                        <rect x="80" y="52" width="8" height="8" fill="#2C1E16"/>
+                        <rect x="65" y="70" width="10" height="10" fill="#2C1E16"/>
+                        <rect x="80" y="75" width="8" height="8" fill="#2C1E16"/>
+                        <rect x="45" y="75" width="8" height="8" fill="#2C1E16"/>
+                    </svg>
+                </div>
+
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                    Simulated UPI ID: <strong style="color: var(--primary);">cafenest@upi</strong>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-light);">
+                    Clicking the button below simulates instant bank verification and records the transaction in MySQL.
+                </div>
+            </div>
+
+            <!-- Method 2: Cash View -->
+            <div id="viewCash" class="qr-container" style="display: none;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem;">💵</div>
+                <h4 style="color: var(--primary); margin-bottom: 0.4rem;">Cash at Counter</h4>
+                <p style="font-size: 0.88rem; color: var(--text-muted); max-width: 380px; margin: 0 auto;">
+                    Your order will be sent to the kitchen immediately. Please present your Order Reference number to the barista upon collection or when served at your table.
+                </p>
+            </div>
+
+            <!-- Action Button -->
+            <div style="margin-top: 1.5rem;">
+                <button id="payConfirmBtn" onclick="confirmPayment()" class="btn btn-amber btn-lg" style="width: 100%; border-radius: var(--radius-full);">
+                    Confirm Demonstration Payment (₹<span id="btnPayAmount">0.00</span>) ➔
+                </button>
+            </div>
+
+            <div style="text-align: center; margin-top: 1.2rem;">
+                <a href="/frontend/customer/cart.html" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: underline;">
+                    ← Return to Basket
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="/frontend/assets/js/app.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order_id');
+        let chosenMethod = 'Simulated_UPI';
+
+        async function initPaymentPage() {
+            if (!orderId) {
+                showToast('No order reference provided.', 'error');
+                setTimeout(() => window.location.href = '/frontend/customer/cart.html', 1500);
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/orders/${orderId}`);
+                const result = await res.json();
+                if (result.success) {
+                    const order = result.data;
+                    document.getElementById('displayOrderRef').textContent = `#${order.order_reference}`;
+                    document.getElementById('displayOrderTotal').textContent = `₹${order.total_amount.toFixed(2)}`;
+                    document.getElementById('btnPayAmount').textContent = order.total_amount.toFixed(2);
+                } else {
+                    showToast('Failed to load order details.', 'error');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function selectPaymentMethod(method) {
+            chosenMethod = method;
+            const tabUpi = document.getElementById('tabUpi');
+            const tabCash = document.getElementById('tabCash');
+            const viewUpi = document.getElementById('viewUpi');
+            const viewCash = document.getElementById('viewCash');
+
+            if (method === 'Simulated_UPI') {
+                tabUpi.classList.add('active');
+                tabCash.classList.remove('active');
+                viewUpi.style.display = 'block';
+                viewCash.style.display = 'none';
+            } else {
+                tabCash.classList.add('active');
+                tabUpi.classList.remove('active');
+                viewCash.style.display = 'block';
+                viewUpi.style.display = 'none';
+            }
+        }
+
+        async function confirmPayment() {
+            const btn = document.getElementById('payConfirmBtn');
+            btn.disabled = true;
+            btn.textContent = 'Processing Simulated Payment...';
+
+            try {
+                const res = await fetch('/api/payments/demo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_id: parseInt(orderId),
+                        method: chosenMethod
+                    })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    showToast('Payment confirmed! Kitchen preparing your order...', 'success');
+                    setTimeout(() => {
+                        window.location.href = `/frontend/customer/tracking.html?order_id=${orderId}&ref=${result.data.order_reference}`;
+                    }, 800);
+                } else {
+                    showToast(result.message || 'Payment simulation failed.', 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Confirm Demonstration Payment ➔';
+                }
+            } catch (e) {
+                showToast('Error during payment recording.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'Confirm Demonstration Payment ➔';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initPaymentPage);
+    </script>
+</body>
+</html>

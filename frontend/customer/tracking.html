@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Tracking & History — CaféNest</title>
+    <meta name="description" content="Track your live cafe order status in real time. From barista grinding to table delivery.">
+    <link rel="stylesheet" href="/frontend/assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">
+                <span class="logo-icon">☕</span>
+                <span>CaféNest</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/frontend/customer/menu.html" class="nav-link">Menu & Order</a></li>
+                    <li><a href="/frontend/customer/cart.html" class="nav-link">Cart</a></li>
+                    <li><a href="/frontend/customer/tracking.html" class="nav-link active">Track Order</a></li>
+                    <li><a href="/frontend/administrator/index.html" class="nav-link" style="color: var(--secondary);">Admin Portal</a></li>
+                </ul>
+            </nav>
+            <div class="nav-actions">
+                <div id="navAuthContainer"></div>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2.5rem 1.5rem 6rem 1.5rem; max-width: 1000px; margin: 0 auto;">
+        <!-- Header -->
+        <div class="section-header" style="margin-bottom: 2rem;">
+            <span class="section-tag">Live Kitchen Tracking</span>
+            <h1 class="section-title">Order Status & Progress</h1>
+            <p class="section-subtitle">Real-time status updates connected directly to our MySQL database.</p>
+        </div>
+
+        <!-- Reference Search Bar -->
+        <div style="background: var(--surface); padding: 1.2rem; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm); margin-bottom: 2rem; display: flex; gap: 0.8rem; align-items: center;">
+            <input type="text" id="trackRefInput" placeholder="Enter Order Reference (e.g. NEST-1002)" class="form-input" style="flex: 1; border-radius: var(--radius-full);">
+            <button onclick="searchOrderByRef()" class="btn btn-primary btn-md">Track Order</button>
+        </div>
+
+        <!-- Tracking Card -->
+        <div class="cart-card" id="trackingCard" style="display: none; margin-bottom: 3rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; border-bottom: 1px solid var(--border); padding-bottom: 1.2rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--secondary); font-weight: 700;">Active Order</span>
+                    <h2 style="font-size: 1.6rem; color: var(--primary);" id="trkOrderRef">#NEST-1001</h2>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);" id="trkTimestamp">Placed today at 12:30 PM</div>
+                </div>
+
+                <div style="text-align: right;">
+                    <div style="font-size: 0.8rem; color: var(--text-light); text-transform: uppercase;">Service Type</div>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--primary);" id="trkDiningType">Dine-In • Table 2</div>
+                    <span class="badge badge-preparing" id="trkStatusBadge" style="margin-top: 0.3rem;">Preparing</span>
+                </div>
+            </div>
+
+            <!-- Milestone Tracker -->
+            <div class="status-tracker" id="milestoneTracker">
+                <div class="tracker-progress-bar" id="trackerFill" style="width: 25%;"></div>
+
+                <div class="status-step" id="step-Pending">
+                    <div class="step-circle">📋</div>
+                    <div class="step-label">Pending</div>
+                </div>
+                <div class="status-step" id="step-Confirmed">
+                    <div class="step-circle">💳</div>
+                    <div class="step-label">Confirmed</div>
+                </div>
+                <div class="status-step" id="step-Preparing">
+                    <div class="step-circle">☕</div>
+                    <div class="step-label">Preparing</div>
+                </div>
+                <div class="status-step" id="step-Ready">
+                    <div class="step-circle">🔔</div>
+                    <div class="step-label">Ready</div>
+                </div>
+                <div class="status-step" id="step-Completed">
+                    <div class="step-circle">🎉</div>
+                    <div class="step-label">Completed</div>
+                </div>
+            </div>
+
+            <!-- Order Line Items -->
+            <div style="margin-top: 2rem; border-top: 1px solid var(--border-light); padding-top: 1.5rem;">
+                <h4 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary);">Items in This Order</h4>
+                <div id="trkLineItemsList" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                    <!-- Line items -->
+                </div>
+            </div>
+
+            <!-- Payment & Total breakdown -->
+            <div style="margin-top: 1.5rem; background: var(--surface-card); padding: 1.2rem; border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 1rem;">
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-light);">Payment Reference</div>
+                    <div style="font-weight: 600; font-size: 0.95rem; color: var(--primary);" id="trkPayRef">UPI-DEMO-98218731</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.8rem; color: var(--text-light);">Total Amount Paid</div>
+                    <div style="font-size: 1.4rem; font-weight: 700; color: var(--primary); font-family: 'Playfair Display', serif;" id="trkTotalAmount">₹420.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Customer Orders -->
+        <div class="cart-card">
+            <h3 style="font-size: 1.3rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
+                Recent Cafe Orders
+            </h3>
+            <div class="data-table-container" style="border: none; box-shadow: none;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order Ref</th>
+                            <th>Type</th>
+                            <th>Table / Pickup</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentOrdersTbody">
+                        <tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading orders...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-bottom">
+            <div>© 2026 CaféNest Systems. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="/frontend/assets/js/app.js"></script>
+    <script>
+        const STEPS = ['Pending', 'Confirmed', 'Preparing', 'Ready', 'Completed'];
+
+        async function initTrackingPage() {
+            const params = new URLSearchParams(window.location.search);
+            const orderId = params.get('order_id');
+            const orderRef = params.get('ref');
+
+            if (orderId) {
+                await loadOrderById(orderId);
+            } else if (orderRef) {
+                document.getElementById('trackRefInput').value = orderRef;
+                await searchOrderByRef();
+            } else {
+                // Load default first active order from recent list
+                await loadRecentOrders(true);
+            }
+
+            await loadRecentOrders(false);
+        }
+
+        async function loadOrderById(id) {
+            try {
+                const res = await fetch(`/api/orders/${id}`);
+                const result = await res.json();
+                if (result.success) {
+                    displayTrackedOrder(result.data);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function searchOrderByRef() {
+            const ref = document.getElementById('trackRefInput').value.trim();
+            if (!ref) {
+                showToast('Please enter an order reference code.', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/orders/track/${encodeURIComponent(ref)}`);
+                const result = await res.json();
+                if (result.success) {
+                    displayTrackedOrder(result.data);
+                } else {
+                    showToast(result.message || 'Order reference not found.', 'error');
+                }
+            } catch (e) {
+                showToast('Error tracking order.', 'error');
+            }
+        }
+
+        function displayTrackedOrder(order) {
+            const card = document.getElementById('trackingCard');
+            card.style.display = 'block';
+
+            document.getElementById('trkOrderRef').textContent = `#${order.order_reference}`;
+            document.getElementById('trkTimestamp').textContent = `Order placed: ${order.created_at}`;
+            document.getElementById('trkDiningType').textContent = order.order_type === 'Dine-In' ? 
+                `Dine-In • ${order.table_number || 'Table Assigned'}` : 'Takeaway / Counter Pickup';
+
+            const badge = document.getElementById('trkStatusBadge');
+            badge.textContent = order.status;
+            badge.className = `badge badge-${order.status.toLowerCase()}`;
+
+            // Update Progress Bar & Steps
+            updateMilestoneTracker(order.status);
+
+            // Line items
+            const itemsContainer = document.getElementById('trkLineItemsList');
+            if (order.items && order.items.length > 0) {
+                itemsContainer.innerHTML = order.items.map(it => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--border-light);">
+                        <div style="display: flex; gap: 0.8rem; align-items: center;">
+                            <span style="font-weight: 700; color: var(--secondary);">${it.quantity}x</span>
+                            <span style="font-weight: 600;">${it.item_name}</span>
+                        </div>
+                        <div style="font-weight: 700; color: var(--primary);">₹${it.subtotal.toFixed(2)}</div>
+                    </div>
+                `).join('');
+            } else {
+                itemsContainer.innerHTML = '<div style="color: var(--text-muted);">No items details recorded.</div>';
+            }
+
+            // Payment
+            document.getElementById('trkTotalAmount').textContent = `₹${order.total_amount.toFixed(2)}`;
+            if (order.payment) {
+                document.getElementById('trkPayRef').textContent = `${order.payment.method} (${order.payment.transaction_ref})`;
+            } else {
+                document.getElementById('trkPayRef').textContent = 'Simulated Verification Pending';
+            }
+
+            card.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateMilestoneTracker(status) {
+            const stepIndex = STEPS.indexOf(status);
+            const fill = document.getElementById('trackerFill');
+
+            STEPS.forEach((step, idx) => {
+                const el = document.getElementById(`step-${step}`);
+                if (!el) return;
+
+                el.classList.remove('completed', 'active');
+                if (idx < stepIndex) {
+                    el.classList.add('completed');
+                } else if (idx === stepIndex) {
+                    el.classList.add('active');
+                }
+            });
+
+            if (stepIndex >= 0) {
+                const pct = (stepIndex / (STEPS.length - 1)) * 100;
+                fill.style.width = `calc(${pct}% - 40px)`;
+            }
+        }
+
+        async function loadRecentOrders(selectFirst = false) {
+            try {
+                // Fetch recent orders
+                const res = await fetch('/api/orders?limit=10');
+                const result = await res.json();
+                const tbody = document.getElementById('recentOrdersTbody');
+
+                if (result.success && result.data.length > 0) {
+                    tbody.innerHTML = result.data.map(o => `
+                        <tr>
+                            <td><strong>#${o.order_reference}</strong></td>
+                            <td>${o.order_type}</td>
+                            <td>${o.table_number || 'Counter Pickup'}</td>
+                            <td><strong>₹${o.total_amount.toFixed(2)}</strong></td>
+                            <td><span class="badge badge-${o.status.toLowerCase()}">${o.status}</span></td>
+                            <td>
+                                <button onclick="loadOrderById(${o.order_id})" class="btn btn-secondary btn-sm" style="padding: 0.25rem 0.65rem; font-size: 0.75rem;">
+                                    Track Status
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    if (selectFirst && !document.getElementById('trackingCard').style.display) {
+                        loadOrderById(result.data[0].order_id);
+                    }
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">No orders recorded yet. Place an order from the menu!</td></tr>';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initTrackingPage);
+    </script>
+</body>
+</html>

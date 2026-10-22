@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Account & Profile — CaféNest</title>
+    <meta name="description" content="Manage your CaféNest member profile, loyalty points, delivery addresses, and past cafe orders.">
+    <link rel="stylesheet" href="/frontend/assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">
+                <span class="logo-icon">☕</span>
+                <span>CaféNest</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/frontend/customer/menu.html" class="nav-link">Menu & Order</a></li>
+                    <li><a href="/frontend/customer/cart.html" class="nav-link">Cart</a></li>
+                    <li><a href="/frontend/customer/tracking.html" class="nav-link">Track Order</a></li>
+                </ul>
+            </nav>
+            <div class="nav-actions">
+                <a href="/frontend/customer/cart.html" class="cart-btn" aria-label="Cart">
+                    <span>🛒</span>
+                    <span class="cart-badge" style="display: none;">0</span>
+                </a>
+                <div id="navAuthContainer"></div>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 3rem 1.5rem 6rem 1.5rem; max-width: 900px; margin: 0 auto;">
+        <!-- Auth View: When user is NOT logged in -->
+        <div id="authBox" style="display: none;">
+            <div class="cart-card" style="max-width: 500px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 1.8rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">☕</div>
+                    <h2 style="font-size: 1.8rem; color: var(--primary);">Welcome to CaféNest</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Sign in to save favorite roasts, collect loyalty points, and track table orders.</p>
+                </div>
+
+                <div class="payment-methods" style="margin-bottom: 1.5rem;">
+                    <div class="pay-tab active" id="tabSignIn" onclick="switchAuthTab('login')">Sign In</div>
+                    <div class="pay-tab" id="tabSignUp" onclick="switchAuthTab('register')">Create Account</div>
+                </div>
+
+                <!-- Sign In Form -->
+                <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="loginEmail" class="form-input" placeholder="e.g. aarav@gmail.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-amber btn-lg" style="width: 100%; border-radius: var(--radius-full);">
+                            Sign In to CaféNest ➔
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 1.2rem; background: var(--surface-alt); padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.78rem; color: var(--text-muted);">
+                        💡 <strong>Demo Customer Credential:</strong><br>
+                        Email: <code>aarav@gmail.com</code> | Password: <code>customer123</code>
+                    </div>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" onsubmit="handleRegisterSubmit(event)" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="regName" class="form-input" placeholder="e.g. Priya Sharma" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="regEmail" class="form-input" placeholder="e.g. priya@gmail.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" id="regPhone" class="form-input" placeholder="e.g. +91 9876543210">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password (min 6 chars)</label>
+                        <input type="password" id="regPassword" class="form-input" placeholder="Create a strong password" required minlength="6">
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; border-radius: var(--radius-full);">
+                            Create Account & Get 50 Pts ➔
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Profile View: When user IS logged in -->
+        <div id="profileBox" style="display: none;">
+            <div class="section-header" style="text-align: left; margin-bottom: 1.5rem;">
+                <span class="section-tag">CaféNest Member</span>
+                <h1 class="section-title">Customer Profile</h1>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 2rem;">
+                <!-- Left: Profile Summary Card -->
+                <div class="cart-card">
+                    <div style="text-align: center; margin-bottom: 1.5rem;">
+                        <div style="width: 80px; height: 80px; border-radius: var(--radius-full); background: var(--secondary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 0.8rem auto; font-family: 'Playfair Display', serif;" id="userAvatarLetter">
+                            A
+                        </div>
+                        <h3 id="profNameDisplay" style="font-size: 1.35rem; color: var(--primary);">Aarav Sharma</h3>
+                        <div id="profEmailDisplay" style="font-size: 0.85rem; color: var(--text-muted);">aarav@gmail.com</div>
+                    </div>
+
+                    <div style="background: var(--surface-card); padding: 1.2rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.5rem; text-align: center;">
+                        <div style="font-size: 0.78rem; text-transform: uppercase; color: var(--secondary); font-weight: 700;">Nest Loyalty Points</div>
+                        <div style="font-size: 2.2rem; font-weight: 700; color: var(--primary); font-family: 'Playfair Display', serif;" id="profPointsDisplay">120</div>
+                        <small style="color: var(--text-muted); font-size: 0.75rem;">Earn 10 points per ₹100 spent</small>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                        <a href="/frontend/customer/menu.html" class="btn btn-primary btn-md" style="width: 100%;">Order Now ➔</a>
+                        <a href="/frontend/customer/tracking.html" class="btn btn-secondary btn-md" style="width: 100%;">Track Active Orders</a>
+                        <button onclick="handleLogout()" class="btn btn-secondary btn-md" style="width: 100%; color: var(--non-veg); border-color: #F8D7DA;">Sign Out</button>
+                    </div>
+                </div>
+
+                <!-- Right: Update Profile Info -->
+                <div class="cart-card">
+                    <h3 style="font-size: 1.25rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
+                        Edit Personal Details
+                    </h3>
+
+                    <form onsubmit="handleUpdateProfile(event)">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" id="editName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" id="editPhone" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Default Delivery / Billing Address</label>
+                            <textarea id="editAddress" class="form-textarea" rows="3" placeholder="Enter street, apartment, city, and pin code"></textarea>
+                        </div>
+                        <div style="margin-top: 1.5rem;">
+                            <button type="submit" class="btn btn-amber btn-md">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-bottom">
+            <div>© 2026 CaféNest Systems. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="/frontend/assets/js/app.js"></script>
+    <script>
+        async function initProfilePage() {
+            try {
+                const res = await fetch('/api/auth/me');
+                const result = await res.json();
+                if (result.success && result.authenticated && result.data.user_type === 'customer') {
+                    showProfileView(result.data);
+                } else {
+                    showAuthView();
+                }
+            } catch (e) {
+                showAuthView();
+            }
+        }
+
+        function showAuthView() {
+            document.getElementById('authBox').style.display = 'block';
+            document.getElementById('profileBox').style.display = 'none';
+
+            if (window.location.hash === '#register') {
+                switchAuthTab('register');
+            } else {
+                switchAuthTab('login');
+            }
+        }
+
+        function showProfileView(user) {
+            document.getElementById('authBox').style.display = 'none';
+            document.getElementById('profileBox').style.display = 'block';
+
+            document.getElementById('userAvatarLetter').textContent = user.name ? user.name[0].toUpperCase() : 'C';
+            document.getElementById('profNameDisplay').textContent = user.name;
+            document.getElementById('profEmailDisplay').textContent = user.email;
+            document.getElementById('profPointsDisplay').textContent = user.loyalty_points || 50;
+
+            document.getElementById('editName').value = user.name || '';
+            document.getElementById('editPhone').value = user.phone || '';
+            document.getElementById('editAddress').value = user.address || '';
+        }
+
+        function switchAuthTab(tab) {
+            const tabSign = document.getElementById('tabSignIn');
+            const tabReg = document.getElementById('tabSignUp');
+            const formLogin = document.getElementById('loginForm');
+            const formReg = document.getElementById('registerForm');
+
+            if (tab === 'login') {
+                tabSign.classList.add('active');
+                tabReg.classList.remove('active');
+                formLogin.style.display = 'block';
+                formReg.style.display = 'none';
+            } else {
+                tabReg.classList.add('active');
+                tabSign.classList.remove('active');
+                formReg.style.display = 'block';
+                formLogin.style.display = 'none';
+            }
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, login_type: 'customer' })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    setTimeout(() => initProfilePage(), 400);
+                } else {
+                    showToast(result.message || 'Invalid login details.', 'error');
+                }
+            } catch (err) {
+                showToast('Login request error.', 'error');
+            }
+        }
+
+        async function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const phone = document.getElementById('regPhone').value;
+            const password = document.getElementById('regPassword').value;
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, phone, password })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast(result.message, 'success');
+                    setTimeout(() => initProfilePage(), 400);
+                } else {
+                    showToast(result.message || 'Registration failed.', 'error');
+                }
+            } catch (err) {
+                showToast('Registration error.', 'error');
+            }
+        }
+
+        async function handleUpdateProfile(e) {
+            e.preventDefault();
+            const name = document.getElementById('editName').value;
+            const phone = document.getElementById('editPhone').value;
+            const address = document.getElementById('editAddress').value;
+
+            try {
+                const res = await fetch('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, address })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('Profile updated successfully!', 'success');
+                    document.getElementById('profNameDisplay').textContent = name;
+                } else {
+                    showToast(result.message || 'Update failed.', 'error');
+                }
+            } catch (err) {
+                showToast('Update error.', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initProfilePage);
+    </script>
+</body>
+</html>

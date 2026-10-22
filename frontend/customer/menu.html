@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu & Ordering — CaféNest</title>
+    <meta name="description" content="Explore the handcrafted menu at CaféNest. Specialty coffees, artisan brews, fresh bakery, gourmet sandwiches, and desserts.">
+    <link rel="stylesheet" href="/frontend/assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">
+                <span class="logo-icon">☕</span>
+                <span>CaféNest</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/frontend/customer/menu.html" class="nav-link active">Menu & Order</a></li>
+                    <li><a href="/frontend/customer/cart.html" class="nav-link">Dine-In Tables</a></li>
+                    <li><a href="/frontend/customer/tracking.html" class="nav-link">Track Order</a></li>
+                    <li><a href="/frontend/administrator/index.html" class="nav-link" style="color: var(--secondary);">Admin Portal</a></li>
+                </ul>
+            </nav>
+            <div class="nav-actions">
+                <a href="/frontend/customer/cart.html" class="cart-btn" aria-label="Cart">
+                    <span>🛒</span>
+                    <span>Basket</span>
+                    <span class="cart-badge" style="display: none;">0</span>
+                </a>
+                <div id="navAuthContainer"></div>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2.5rem 0 6rem 0;">
+        <!-- Page Title & Header -->
+        <div class="section-header" style="margin-bottom: 2rem;">
+            <span class="section-tag">Artisanal Offerings</span>
+            <h1 class="section-title">The Complete CaféNest Menu</h1>
+            <p class="section-subtitle">Roasted in-house, brewed with precision, and prepared with organic farm ingredients.</p>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="menu-controls">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="menuSearchInput" placeholder="Search coffee, croissants, sandwiches..." aria-label="Search Menu">
+            </div>
+
+            <div class="diet-toggle">
+                <button class="diet-btn active" data-diet="all" onclick="filterByDiet('all', this)">All Items</button>
+                <button class="diet-btn" data-diet="veg" onclick="filterByDiet('veg', this)">● Veg Only</button>
+                <button class="diet-btn" data-diet="non-veg" onclick="filterByDiet('non-veg', this)">▲ Non-Veg</button>
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div style="max-width: 1280px; margin: 0 auto 2rem auto; padding: 0 1.5rem;">
+            <div class="category-pills" id="categoryPillsContainer">
+                <button class="cat-pill active" onclick="filterByCategory(null, this)">All Categories</button>
+                <!-- Categories injected dynamically -->
+            </div>
+        </div>
+
+        <!-- Menu Grid -->
+        <div class="cards-grid" id="menuItemsGrid">
+            <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">
+                Brewing your menu...
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Basket Bar -->
+    <div class="floating-basket-bar" id="floatingBasket">
+        <div class="basket-info">
+            <span class="basket-count-badge basket-item-count">0 items</span>
+            <span class="basket-total">₹0.00</span>
+        </div>
+        <a href="/frontend/customer/cart.html" class="btn btn-amber btn-sm">Review & Checkout ➔</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <div class="brand-logo" style="color: #fff; margin-bottom: 0.8rem;">
+                    <span>☕</span> <span>CaféNest</span>
+                </div>
+                <p style="font-size: 0.9rem; line-height: 1.6;">European roastery tradition blended with contemporary table ordering.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Customer Help</h4>
+                <ul class="footer-links">
+                    <li><a href="/frontend/customer/cart.html">View Cart & Table</a></li>
+                    <li><a href="/frontend/customer/tracking.html">Live Status</a></li>
+                    <li><a href="/frontend/customer/profile.html">Member Profile</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Hours & Contact</h4>
+                <ul class="footer-links">
+                    <li>Daily: 7:30 AM – 11:00 PM</li>
+                    <li>Lane 5, Koregaon Park, Pune</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Administrative</h4>
+                <ul class="footer-links">
+                    <li><a href="/frontend/administrator/index.html" style="color: #F8C39B;">Staff Portal Login ➔</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>© 2026 CaféNest Systems. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="/frontend/assets/js/app.js"></script>
+    <script>
+        let allMenuItems = [];
+        let activeCategoryId = null;
+        let activeDiet = 'all';
+        let searchQuery = '';
+
+        async function initMenuPage() {
+            await loadCategories();
+            await loadMenu();
+            
+            document.getElementById('menuSearchInput').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                renderCards();
+            });
+        }
+
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/menu/categories');
+                const result = await res.json();
+                if (result.success) {
+                    const container = document.getElementById('categoryPillsContainer');
+                    const html = `
+                        <button class="cat-pill ${activeCategoryId === null ? 'active' : ''}" onclick="filterByCategory(null, this)">All Categories</button>
+                    ` + result.data.map(c => `
+                        <button class="cat-pill ${activeCategoryId === c.category_id ? 'active' : ''}" onclick="filterByCategory(${c.category_id}, this)">
+                            ${c.category_name} (${c.active_items})
+                        </button>
+                    `).join('');
+                    container.innerHTML = html;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadMenu() {
+            try {
+                const res = await fetch('/api/menu?include_unavailable=true');
+                const result = await res.json();
+                if (result.success) {
+                    allMenuItems = result.data;
+                    renderCards();
+                }
+            } catch (e) {
+                document.getElementById('menuItemsGrid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--non-veg);">Error loading menu items.</div>';
+            }
+        }
+
+        function filterByCategory(catId, btn) {
+            activeCategoryId = catId;
+            document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderCards();
+        }
+
+        function filterByDiet(diet, btn) {
+            activeDiet = diet;
+            document.querySelectorAll('.diet-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderCards();
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('menuItemsGrid');
+            let filtered = allMenuItems;
+
+            if (activeCategoryId !== null) {
+                filtered = filtered.filter(i => i.category_id === activeCategoryId);
+            }
+
+            if (activeDiet === 'veg') {
+                filtered = filtered.filter(i => i.is_veg === true);
+            } else if (activeDiet === 'non-veg') {
+                filtered = filtered.filter(i => i.is_veg === false);
+            }
+
+            if (searchQuery) {
+                filtered = filtered.filter(i => 
+                    i.name.toLowerCase().includes(searchQuery) || 
+                    (i.description && i.description.toLowerCase().includes(searchQuery)) ||
+                    i.category_name.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">☕</div>
+                        <h3 style="color: var(--primary); margin-bottom: 0.5rem;">No menu items found</h3>
+                        <p style="color: var(--text-muted);">Try adjusting your search keyword or selected category filter.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => `
+                <div class="food-card" id="card-${item.menu_id}">
+                    <div class="card-img-wrapper">
+                        <img src="${item.image_url}" alt="${item.name}" loading="lazy">
+                        <div class="card-badges">
+                            <span class="diet-tag ${item.is_veg ? 'veg' : 'non-veg'}">
+                                ${item.is_veg ? '● VEG' : '▲ NON-VEG'}
+                            </span>
+                            <span class="availability-tag ${item.is_available ? 'available' : 'sold-out'}">
+                                ${item.is_available ? 'In Stock' : 'Sold Out'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <span class="card-category">${item.category_name}</span>
+                        <h3 class="card-title">${item.name}</h3>
+                        <p class="card-desc">${item.description || 'Artisanal cafe delicacy prepared freshly on order.'}</p>
+                        
+                        <div class="card-footer">
+                            <div class="price-box">
+                                <span class="price-label">Price</span>
+                                <span class="price-val">₹${item.price.toFixed(2)}</span>
+                            </div>
+
+                            ${item.is_available ? `
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <button class="btn btn-primary btn-sm" onclick="Cart.addItem(${JSON.stringify(item).replace(/"/g, '&quot;')}, 1)">
+                                        + Add to Cup
+                                    </button>
+                                </div>
+                            ` : `
+                                <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.6; cursor: not-allowed;">
+                                    Sold Out
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', initMenuPage);
+    </script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CaféNest — Artisan Coffee & Handcrafted Delights</title>
+    <meta name="description" content="Welcome to CaféNest. Experience artisanal pour-overs, single-origin roasts, flaky croissants, and seamless contactless table ordering.">
+    <link rel="stylesheet" href="/frontend/assets/css/style.css">
+</head>
+<body>
+
+    <!-- Navigation Header -->
+    <header class="navbar" id="mainNavbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">
+                <span class="logo-icon">☕</span>
+                <span>CaféNest</span>
+                <span class="brand-badge">Artisan Roastery</span>
+            </a>
+
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link active">Home</a></li>
+                    <li><a href="/frontend/customer/menu.html" class="nav-link">Menu & Order</a></li>
+                    <li><a href="/frontend/customer/cart.html" class="nav-link">Dine-In Tables</a></li>
+                    <li><a href="/frontend/customer/tracking.html" class="nav-link">Track Order</a></li>
+                    <li><a href="/frontend/administrator/index.html" class="nav-link" style="color: var(--secondary);">Admin Portal</a></li>
+                </ul>
+            </nav>
+
+            <div class="nav-actions">
+                <a href="/frontend/customer/cart.html" class="cart-btn" id="navCartBtn" aria-label="Shopping Cart">
+                    <span>🛒</span>
+                    <span>Basket</span>
+                    <span class="cart-badge" style="display: none;">0</span>
+                </a>
+                <div id="navAuthContainer">
+                    <a href="/frontend/customer/profile.html#login" class="btn btn-primary btn-sm">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main>
+        <section class="hero-section">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <div class="hero-pill">
+                        <span>✨</span>
+                        <span>Specialty Roasters • Mon–Sun: 7:30 AM – 11:00 PM</span>
+                    </div>
+                    <h1 class="hero-title">
+                        Artisan Coffee & <span>Handcrafted</span> Delights.
+                    </h1>
+                    <p class="hero-desc">
+                        Sourced from high-altitude estates in Chikmagalur and Ethiopia. Handcrafted slow roasts, velvety flat whites, and freshly baked sourdough pastries served right to your cafe table.
+                    </p>
+                    <div class="hero-ctas">
+                        <a href="/frontend/customer/menu.html" class="btn btn-amber btn-lg">Explore Full Menu ➔</a>
+                        <a href="/frontend/customer/cart.html" class="btn btn-secondary btn-lg" style="color: #fff; border-color: rgba(255,255,255,0.3);">Order for Table</a>
+                    </div>
+                </div>
+
+                <div class="hero-banner-image">
+                    <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80" alt="CaféNest Artisan Barista Crafting Pour Over">
+                    <div class="hero-floating-card">
+                        <div>
+                            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--secondary); font-weight: 700;">Barista Choice</div>
+                            <div style="font-weight: 700; font-size: 1.05rem;">Velvet Cortado</div>
+                        </div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--primary); font-family: 'Playfair Display', serif;">
+                            ₹190
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pillars Bar -->
+        <section class="pillars-bar">
+            <div class="pillars-grid">
+                <div class="pillar-item">
+                    <div class="pillar-icon">🌱</div>
+                    <div class="pillar-text">
+                        <h4>100% Arabica Beans</h4>
+                        <p>Single origin & ethical shade-grown beans</p>
+                    </div>
+                </div>
+                <div class="pillar-item">
+                    <div class="pillar-icon">🥐</div>
+                    <div class="pillar-text">
+                        <h4>Fresh Daily Baking</h4>
+                        <p>Baked fresh every morning with French butter</p>
+                    </div>
+                </div>
+                <div class="pillar-item">
+                    <div class="pillar-icon">📲</div>
+                    <div class="pillar-text">
+                        <h4>Contactless Table QR</h4>
+                        <p>Order & pay directly from your phone</p>
+                    </div>
+                </div>
+                <div class="pillar-item">
+                    <div class="pillar-icon">⚡</div>
+                    <div class="pillar-text">
+                        <h4>Express Table Delivery</h4>
+                        <p>Prepared & delivered hot in 12-15 mins</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signature Menu Showcase -->
+        <section style="max-width: 1280px; margin: 3rem auto 5rem auto; padding: 0 1.5rem;">
+            <div class="section-header">
+                <span class="section-tag">Curated Selections</span>
+                <h2 class="section-title">Today's Roastery Highlights</h2>
+                <p class="section-subtitle">Our master barista's handpicked recommendations brewed to perfection.</p>
+            </div>
+
+            <div class="cards-grid" id="homepageMenuGrid">
+                <!-- Dynamically loaded via JavaScript from /api/menu -->
+                <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
+                    Brewing fresh menu items...
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="/frontend/customer/menu.html" class="btn btn-primary btn-lg">View Complete 15+ Item Menu ➔</a>
+            </div>
+        </section>
+
+        <!-- Story / Atmosphere Section -->
+        <section style="background: var(--surface-card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 5rem 1.5rem;">
+            <div style="max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+                <div>
+                    <span class="section-tag">The Sanctuary</span>
+                    <h2 class="section-title">Slow Mornings & Sensory Aromas</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 1.05rem;">
+                        CaféNest was founded as a haven for thinkers, creators, and coffee aficionados. We balance timeless European cafe traditions with contemporary contactless hospitality.
+                    </p>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem;">
+                        Whether you are settling in with a book in our Sanctuary Garden Patio or enjoying a quick pour-over at our communal bar, every cup is weighed, ground, and extracted with millimeter precision.
+                    </p>
+                    <div style="display: flex; gap: 2rem;">
+                        <div>
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--secondary); font-family: 'Playfair Display', serif;">12+</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Dedicated Cafe Tables</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--secondary); font-family: 'Playfair Display', serif;">18h</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Cold Brew Steep Time</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--secondary); font-family: 'Playfair Display', serif;">4.9★</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Customer Rating</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=800&q=80" alt="Cafe Interior Sanctuary" style="width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border);">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Basket Bar -->
+    <div class="floating-basket-bar" id="floatingBasket">
+        <div class="basket-info">
+            <span class="basket-count-badge basket-item-count">0 items</span>
+            <span class="basket-total">₹0.00</span>
+        </div>
+        <a href="/frontend/customer/cart.html" class="btn btn-amber btn-sm">Review & Checkout ➔</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <div class="brand-logo" style="color: #fff; margin-bottom: 0.8rem;">
+                    <span>☕</span> <span>CaféNest</span>
+                </div>
+                <p style="font-size: 0.9rem; line-height: 1.6; max-width: 320px;">
+                    Handcrafted specialty roastery & cafe management system designed with relational database rigor and timeless warmth.
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/frontend/customer/menu.html">Artisan Menu</a></li>
+                    <li><a href="/frontend/customer/cart.html">Cart & Checkout</a></li>
+                    <li><a href="/frontend/customer/tracking.html">Live Order Tracker</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Visit Us</h4>
+                <ul class="footer-links">
+                    <li>Sanctuary Garden, Lane 5</li>
+                    <li>Koregaon Park, Pune — 411001</li>
+                    <li>Open Daily: 7:30 AM – 11:00 PM</li>
+                    <li>+91 (020) 2612-4490</li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Administrative</h4>
+                <ul class="footer-links">
+                    <li><a href="/frontend/administrator/index.html" style="color: #F8C39B; font-weight: 600;">Staff & Admin Login ➔</a></li>
+                    <li><a href="/frontend/administrator/index.html">Live Orders Queue</a></li>
+                    <li><a href="/frontend/administrator/index.html">Inventory & Tables</a></li>
+                    <li><a href="/frontend/administrator/index.html">Sales Analytics</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>© 2026 CaféNest Systems. All rights reserved. Built with Python & MySQL.</div>
+            <div style="display: flex; gap: 1rem;">
+                <span>Om Watane</span> • <span>Ambika Shelke</span> • <span>Tejaswani</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Core Scripts -->
+    <script src="/frontend/assets/js/app.js"></script>
+    <script>
+        // Load highlights from /api/menu
+        async function loadFeaturedItems() {
+            const grid = document.getElementById('homepageMenuGrid');
+            try {
+                const res = await fetch('/api/menu?limit=6');
+                const result = await res.json();
+                if (result.success && result.data.length > 0) {
+                    const items = result.data.slice(0, 6);
+                    grid.innerHTML = items.map(item => `
+                        <div class="food-card">
+                            <div class="card-img-wrapper">
+                                <img src="${item.image_url}" alt="${item.name}" loading="lazy">
+                                <div class="card-badges">
+                                    <span class="diet-tag ${item.is_veg ? 'veg' : 'non-veg'}">
+                                        ${item.is_veg ? '● VEG' : '▲ NON-VEG'}
+                                    </span>
+                                    <span class="availability-tag ${item.is_available ? 'available' : 'sold-out'}">
+                                        ${item.is_available ? 'In Stock' : 'Sold Out'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <span class="card-category">${item.category_name}</span>
+                                <h3 class="card-title">${item.name}</h3>
+                                <p class="card-desc">${item.description}</p>
+                                <div class="card-footer">
+                                    <div class="price-box">
+                                        <span class="price-label">Price</span>
+                                        <span class="price-val">₹${item.price.toFixed(2)}</span>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" onclick="Cart.addItem(${JSON.stringify(item).replace(/"/g, '&quot;')}, 1)">
+                                        + Add to Cup
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--non-veg);">Failed to load menu items. Please ensure backend is running.</div>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadFeaturedItems);
+    </script>
+</body>
+</html>

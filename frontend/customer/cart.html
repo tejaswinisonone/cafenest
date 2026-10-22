@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart & Table Checkout — CaféNest</title>
+    <meta name="description" content="Review your artisanal coffee basket, select your cafe table or takeaway, and proceed to checkout.">
+    <link rel="stylesheet" href="/frontend/assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">
+                <span class="logo-icon">☕</span>
+                <span>CaféNest</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/frontend/customer/menu.html" class="nav-link">Menu & Order</a></li>
+                    <li><a href="/frontend/customer/cart.html" class="nav-link active">Dine-In Tables</a></li>
+                    <li><a href="/frontend/customer/tracking.html" class="nav-link">Track Order</a></li>
+                    <li><a href="/frontend/administrator/index.html" class="nav-link" style="color: var(--secondary);">Admin Portal</a></li>
+                </ul>
+            </nav>
+            <div class="nav-actions">
+                <a href="/frontend/customer/cart.html" class="cart-btn" aria-label="Cart">
+                    <span>🛒</span>
+                    <span>Basket</span>
+                    <span class="cart-badge" style="display: none;">0</span>
+                </a>
+                <div id="navAuthContainer"></div>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2.5rem 0 6rem 0;">
+        <div class="section-header" style="margin-bottom: 2rem;">
+            <span class="section-tag">Basket & Service</span>
+            <h1 class="section-title">Your CaféNest Order</h1>
+            <p class="section-subtitle">Select your dine-in table or takeaway preference and review your items.</p>
+        </div>
+
+        <div class="cart-layout">
+            <!-- Left Column: Cart Items & Table Selection -->
+            <div style="display: flex; flex-direction: column; gap: 1.8rem;">
+                <!-- Cart Items Box -->
+                <div class="cart-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
+                        <h3 style="font-size: 1.3rem;">Selected Delicacies</h3>
+                        <button onclick="clearEntireCart()" class="btn btn-secondary btn-sm" style="font-size: 0.78rem;">Clear Basket</button>
+                    </div>
+
+                    <div id="cartItemsList">
+                        <!-- Items injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Dining Option & Table Picker -->
+                <div class="cart-card">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 0.4rem;">Dining Option</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Choose whether you are dining in at one of our cafe tables or picking up takeaway.</p>
+
+                    <div class="order-type-picker">
+                        <div class="order-type-card selected" id="optDineIn" onclick="selectOrderType('Dine-In')">
+                            <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">🪑</div>
+                            <h5>Dine-In (Select Table)</h5>
+                            <p>Hot table service in cafe lounge</p>
+                        </div>
+                        <div class="order-type-card" id="optTakeaway" onclick="selectOrderType('Takeaway')">
+                            <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">🥡</div>
+                            <h5>Takeaway / Pickup</h5>
+                            <p>Packed in insulated eco-carriers</p>
+                        </div>
+                    </div>
+
+                    <div id="tableSelectWrapper" class="form-group" style="margin-top: 1.2rem;">
+                        <label class="form-label">Select Cafe Table <span style="color: var(--secondary);">*</span></label>
+                        <select id="cafeTableDropdown" class="form-select">
+                            <option value="">-- Choose an available table --</option>
+                            <!-- Tables injected dynamically -->
+                        </select>
+                        <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 0.3rem;">
+                            Live table status is checked directly against our MySQL database.
+                        </small>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1.2rem;">
+                        <label class="form-label">Special Instructions for Barista / Kitchen</label>
+                        <textarea id="orderSpecialNotes" class="form-textarea" rows="2" placeholder="e.g. Extra hot flat white, oat milk, less ice, warm croissant..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Order Summary & Checkout -->
+            <div>
+                <div class="cart-card" style="position: sticky; top: 90px;">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem;">
+                        Order Summary
+                    </h3>
+
+                    <div class="bill-summary">
+                        <div class="bill-row">
+                            <span>Items Subtotal</span>
+                            <span id="billSubtotal">₹0.00</span>
+                        </div>
+                        <div class="bill-row">
+                            <span>GST (5% Cafe Tax)</span>
+                            <span id="billTax">₹0.00</span>
+                        </div>
+                        <div class="bill-row">
+                            <span>Service & Packaging</span>
+                            <span style="color: var(--tertiary); font-weight: 600;">FREE</span>
+                        </div>
+                        <div class="bill-row total">
+                            <span>Total Payable</span>
+                            <span id="billGrandTotal" style="color: var(--secondary);">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <div style="margin: 1.5rem 0;">
+                        <button id="checkoutSubmitBtn" onclick="submitOrderAndProceed()" class="btn btn-amber btn-lg" style="width: 100%; border-radius: var(--radius-full);">
+                            Proceed to Payment ➔
+                        </button>
+                    </div>
+
+                    <div style="background: var(--surface-alt); padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+                        🔒 <strong>College Lab Demo Mode</strong><br>
+                        Calculated consistently on Python backend with transactional integrity.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <div class="brand-logo" style="color: #fff; margin-bottom: 0.8rem;"><span>☕</span> CaféNest</div>
+                <p style="font-size: 0.9rem;">European roastery tradition blended with contemporary table ordering.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Navigation</h4>
+                <ul class="footer-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/frontend/customer/menu.html">Artisan Menu</a></li>
+                    <li><a href="/frontend/customer/tracking.html">Track Order</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Hours</h4>
+                <ul class="footer-links">
+                    <li>Monday – Sunday</li>
+                    <li>7:30 AM – 11:00 PM</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Staff Access</h4>
+                <ul class="footer-links">
+                    <li><a href="/frontend/administrator/index.html" style="color: #F8C39B;">Staff & Admin Portal ➔</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>© 2026 CaféNest Systems. All rights reserved.</div>
+        </div>
+    </footer>
+
+    <script src="/frontend/assets/js/app.js"></script>
+    <script>
+        let currentOrderType = 'Dine-In';
+
+        async function initCartPage() {
+            renderCartList();
+            await loadTables();
+            window.addEventListener('cartUpdated', renderCartList);
+        }
+
+        function renderCartList() {
+            const container = document.getElementById('cartItemsList');
+            const items = Cart.items;
+
+            if (!items || items.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem 1rem;">
+                        <div style="font-size: 3.5rem; margin-bottom: 1rem;">🧺</div>
+                        <h3 style="color: var(--primary); margin-bottom: 0.4rem;">Your Basket is Empty</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Explore our specialty coffees and sourdough delicacies.</p>
+                        <a href="/frontend/customer/menu.html" class="btn btn-primary btn-md">Browse Menu ➔</a>
+                    </div>
+                `;
+                updateBill(0);
+                document.getElementById('checkoutSubmitBtn').disabled = true;
+                document.getElementById('checkoutSubmitBtn').style.opacity = '0.5';
+                return;
+            }
+
+            document.getElementById('checkoutSubmitBtn').disabled = false;
+            document.getElementById('checkoutSubmitBtn').style.opacity = '1';
+
+            container.innerHTML = items.map(item => `
+                <div class="cart-item">
+                    <img src="${item.image_url}" alt="${item.name}" class="cart-thumb">
+                    <div class="cart-item-info">
+                        <h4>${item.name}</h4>
+                        <div class="cart-item-unit-price">₹${item.price.toFixed(2)} each</div>
+                    </div>
+                    <div class="qty-control">
+                        <button class="qty-btn" onclick="Cart.updateQuantity(${item.menu_id}, ${item.quantity - 1})">-</button>
+                        <span class="qty-num">${item.quantity}</span>
+                        <button class="qty-btn" onclick="Cart.updateQuantity(${item.menu_id}, ${item.quantity + 1})">+</button>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="cart-item-total">₹${(item.price * item.quantity).toFixed(2)}</div>
+                        <button class="remove-item-btn" onclick="Cart.removeItem(${item.menu_id})" title="Remove item">🗑</button>
+                    </div>
+                </div>
+            `).join('');
+
+            updateBill(Cart.getSubtotal());
+        }
+
+        function updateBill(subtotal) {
+            const tax = subtotal * 0.05;
+            const grandTotal = subtotal + tax;
+
+            document.getElementById('billSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('billTax').textContent = `₹${tax.toFixed(2)}`;
+            document.getElementById('billGrandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+        }
+
+        function selectOrderType(type) {
+            currentOrderType = type;
+            const optDine = document.getElementById('optDineIn');
+            const optTake = document.getElementById('optTakeaway');
+            const tableWrap = document.getElementById('tableSelectWrapper');
+
+            if (type === 'Dine-In') {
+                optDine.classList.add('selected');
+                optTake.classList.remove('selected');
+                tableWrap.style.display = 'block';
+            } else {
+                optTake.classList.add('selected');
+                optDine.classList.remove('selected');
+                tableWrap.style.display = 'none';
+            }
+        }
+
+        async function loadTables() {
+            try {
+                const res = await fetch('/api/tables');
+                const result = await res.json();
+                if (result.success) {
+                    const dropdown = document.getElementById('cafeTableDropdown');
+                    dropdown.innerHTML = '<option value="">-- Choose an available table --</option>' +
+                        result.data.map(t => {
+                            const isAvail = t.status === 'Available';
+                            return `<option value="${t.table_id}" ${!isAvail ? 'disabled' : ''}>
+                                ${t.table_number} (${t.seating_capacity} seats • ${t.location_area}) — [${t.status.toUpperCase()}]
+                            </option>`;
+                        }).join('');
+                }
+            } catch (e) {
+                console.error('Error fetching tables:', e);
+            }
+        }
+
+        function clearEntireCart() {
+            if (confirm('Clear all items from your basket?')) {
+                Cart.clear();
+                renderCartList();
+            }
+        }
+
+        async function submitOrderAndProceed() {
+            if (Cart.items.length === 0) {
+                showToast('Please add items to cart before proceeding.', 'error');
+                return;
+            }
+
+            const tableDropdown = document.getElementById('cafeTableDropdown');
+            const tableId = tableDropdown ? tableDropdown.value : null;
+
+            if (currentOrderType === 'Dine-In' && !tableId) {
+                showToast('Please select an available Cafe Table for dine-in service.', 'error');
+                tableDropdown.focus();
+                return;
+            }
+
+            const notes = document.getElementById('orderSpecialNotes').value;
+            const submitBtn = document.getElementById('checkoutSubmitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Verifying Order & Booking Table...';
+
+            try {
+                const payload = {
+                    items: Cart.items.map(i => ({ menu_id: i.menu_id, quantity: i.quantity })),
+                    order_type: currentOrderType,
+                    table_id: currentOrderType === 'Dine-In' ? parseInt(tableId) : null,
+                    special_instructions: notes
+                };
+
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    // Clear cart upon successful order header creation
+                    Cart.clear();
+                    showToast('Order created! Redirecting to simulated payment...', 'success');
+                    setTimeout(() => {
+                        window.location.href = `/frontend/customer/payment.html?order_id=${result.data.order_id}&ref=${result.data.order_reference}`;
+                    }, 800);
+                } else {
+                    showToast(result.message || 'Failed to place order.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Proceed to Payment ➔';
+                }
+            } catch (e) {
+                showToast('Connection error while submitting order.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Proceed to Payment ➔';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initCartPage);
+    </script>
+</body>
+</html>
