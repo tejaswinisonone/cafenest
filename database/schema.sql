@@ -71,9 +71,11 @@ CREATE TABLE `menu` (
 CREATE TABLE `cafe_tables` (
     `table_id` INT AUTO_INCREMENT PRIMARY KEY,
     `table_number` VARCHAR(20) NOT NULL UNIQUE,
+    `cafe_name` VARCHAR(100) NOT NULL DEFAULT 'CaféNest Artisan Roastery',
     `seating_capacity` INT NOT NULL DEFAULT 2,
     `location_area` VARCHAR(50) NOT NULL DEFAULT 'Main Dining Hall',
     `status` ENUM('Available', 'Occupied', 'Reserved') NOT NULL DEFAULT 'Available',
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -83,14 +85,20 @@ CREATE TABLE `cafe_tables` (
 CREATE TABLE `orders` (
     `order_id` INT AUTO_INCREMENT PRIMARY KEY,
     `order_reference` VARCHAR(50) NOT NULL UNIQUE,
+    `cafe_name` VARCHAR(100) NOT NULL DEFAULT 'CaféNest Artisan Roastery',
     `customer_id` INT DEFAULT NULL,
+    `customer_name` VARCHAR(100) DEFAULT NULL,
+    `customer_phone` VARCHAR(20) DEFAULT NULL,
+    `customer_email` VARCHAR(150) DEFAULT NULL,
     `table_id` INT DEFAULT NULL,
     `order_type` ENUM('Dine-In', 'Takeaway') NOT NULL DEFAULT 'Dine-In',
     `status` ENUM('Pending', 'Confirmed', 'Preparing', 'Ready', 'Completed', 'Cancelled') NOT NULL DEFAULT 'Pending',
     `subtotal` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     `tax_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    `discount_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     `total_amount` DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     `special_instructions` TEXT DEFAULT NULL,
+    `idempotency_key` VARCHAR(100) DEFAULT NULL UNIQUE,
     `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `fk_orders_customer` FOREIGN KEY (`customer_id`) 
@@ -106,6 +114,7 @@ CREATE TABLE `order_details` (
     `order_detail_id` INT AUTO_INCREMENT PRIMARY KEY,
     `order_id` INT NOT NULL,
     `menu_id` INT NOT NULL,
+    `item_name` VARCHAR(150) DEFAULT NULL,
     `quantity` INT NOT NULL,
     `unit_price` DECIMAL(10, 2) NOT NULL,
     `subtotal` DECIMAL(10, 2) NOT NULL,
@@ -206,5 +215,22 @@ CREATE TABLE `menu_price_audit` (
     CONSTRAINT `fk_audit_menu` FOREIGN KEY (`menu_id`) 
         REFERENCES `menu` (`menu_id`) ON DELETE CASCADE,
     CONSTRAINT `fk_audit_staff` FOREIGN KEY (`changed_by_staff_id`) 
+        REFERENCES `staff` (`staff_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ------------------------------------------------------------------------------
+-- 13. Order Status History Table (Audit Trail)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `order_status_history` (
+    `history_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `order_id` INT NOT NULL,
+    `previous_status` VARCHAR(50) DEFAULT NULL,
+    `new_status` VARCHAR(50) NOT NULL,
+    `changed_by_staff_id` INT DEFAULT NULL,
+    `notes` VARCHAR(255) DEFAULT NULL,
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_osh_order` FOREIGN KEY (`order_id`) 
+        REFERENCES `orders` (`order_id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_osh_staff` FOREIGN KEY (`changed_by_staff_id`) 
         REFERENCES `staff` (`staff_id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -154,6 +154,26 @@
                     </form>
                 </div>
             </div>
+
+            <!-- 3. Customer Past Orders & Details Section -->
+            <div class="cart-card" style="margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.8rem;">
+                    <div>
+                        <span class="section-tag">Order History</span>
+                        <h2 style="font-size: 1.4rem; color: var(--primary); margin: 0;">Your CaféNest Orders</h2>
+                    </div>
+                    <button onclick="loadCustomerOrders()" class="btn btn-secondary btn-sm" id="btnRefreshOrders">
+                        🔄 Refresh Orders
+                    </button>
+                </div>
+
+                <div id="customerOrdersContainer">
+                    <div style="text-align: center; padding: 2.5rem; color: var(--text-muted);" id="ordersLoadingIndicator">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">☕</div>
+                        <div>Loading your order history...</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -202,6 +222,8 @@
             document.getElementById('editName').value = user.name || '';
             document.getElementById('editPhone').value = user.phone || '';
             document.getElementById('editAddress').value = user.address || '';
+
+            loadCustomerOrders();
         }
 
         function switchAuthTab(tab) {
@@ -292,6 +314,127 @@
                 }
             } catch (err) {
                 showToast('Update error.', 'error');
+            }
+        }
+
+        async function loadCustomerOrders() {
+            const container = document.getElementById('customerOrdersContainer');
+            const btnRefresh = document.getElementById('btnRefreshOrders');
+            if (btnRefresh) {
+                btnRefresh.disabled = true;
+                btnRefresh.textContent = 'Refreshing...';
+            }
+
+            try {
+                const res = await fetch('/api/orders/history');
+                const result = await res.json();
+
+                if (res.status === 401) {
+                    container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">Please sign in to view your orders.</div>';
+                    return;
+                }
+
+                if (!result.success) {
+                    container.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--non-veg);">${result.message || 'Error loading orders.'}</div>`;
+                    return;
+                }
+
+                const orders = result.data || [];
+                if (orders.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+                            <div style="font-size: 2.5rem; margin-bottom: 0.8rem;">🥐</div>
+                            <h4 style="color: var(--primary); margin-bottom: 0.3rem;">No Past Orders Found</h4>
+                            <p style="font-size: 0.88rem; max-width: 400px; margin: 0 auto 1.2rem auto;">
+                                You haven't placed an artisan coffee or bakery order yet. Discover our fresh roasts today!
+                            </p>
+                            <a href="/frontend/customer/menu.html" class="btn btn-amber btn-md">Explore Our Menu ➔</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = orders.map(ord => {
+                    const statusClass = (ord.status || 'pending').toLowerCase();
+                    const payStatusClass = (ord.payment_status || 'pending').toLowerCase();
+                    const isPayCompleted = ord.payment_status === 'Completed';
+
+                    const itemsHtml = (ord.items || []).map(it => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; font-size: 0.88rem; border-bottom: 1px dashed var(--border-light);">
+                            <div>
+                                <span style="font-weight: 700; color: var(--secondary);">${it.quantity}x</span>
+                                <span style="font-weight: 500; margin-left: 0.4rem;">${it.item_name}</span>
+                                <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 0.4rem;">(@ ₹${it.unit_price.toFixed(2)})</span>
+                            </div>
+                            <div style="font-weight: 600; color: var(--primary);">₹${it.subtotal.toFixed(2)}</div>
+                        </div>
+                    `).join('');
+
+                    return `
+                        <div style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.2rem; margin-bottom: 1.2rem; background: var(--surface);">
+                            <!-- Order Header -->
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.8rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.8rem; margin-bottom: 0.8rem;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 0.6rem;">
+                                        <h3 style="font-size: 1.15rem; color: var(--primary); margin: 0;">#${ord.order_reference}</h3>
+                                        <span class="badge badge-${statusClass}">${ord.status}</span>
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                        ${ord.cafe_name || 'CaféNest Artisan Roastery'} • Placed on ${ord.created_at}
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-light); font-weight: 600;">
+                                        ${ord.order_type === 'Dine-In' ? `Dine-In • Table ${ord.table_number || ''}` : 'Takeaway / Pickup'}
+                                    </span>
+                                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--primary); font-family: 'Playfair Display', serif;">
+                                        ₹${ord.total_amount.toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ordered Items List -->
+                            <div style="margin-bottom: 1rem;">
+                                <div style="font-size: 0.78rem; text-transform: uppercase; color: var(--secondary); font-weight: 700; margin-bottom: 0.4rem;">
+                                    Ordered Items
+                                </div>
+                                ${itemsHtml || '<div style="font-size: 0.85rem; color: var(--text-muted);">No items recorded</div>'}
+                            </div>
+
+                            <!-- Financial & Payment Details -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; background: var(--surface-card); padding: 0.8rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase;">Payment Details</div>
+                                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--primary); margin-top: 0.1rem;">
+                                        ${ord.payment_method || 'Simulated_UPI'} • 
+                                        <span class="badge ${isPayCompleted ? 'badge-completed' : 'badge-pending'}" style="font-size: 0.72rem; padding: 0.15rem 0.45rem;">
+                                            ${ord.payment_status || 'Pending'}
+                                        </span>
+                                    </div>
+                                    ${ord.transaction_ref ? `<div style="font-size: 0.75rem; color: var(--text-muted);">Ref: ${ord.transaction_ref}</div>` : ''}
+                                </div>
+
+                                <div style="display: flex; gap: 0.6rem; align-items: center;">
+                                    <div style="font-size: 0.8rem; color: var(--text-muted); text-align: right;">
+                                        Subtotal: ₹${ord.subtotal.toFixed(2)} | GST (5%): ₹${ord.tax_amount.toFixed(2)}
+                                    </div>
+                                    <a href="/frontend/customer/tracking.html?order_id=${ord.order_id}&ref=${ord.order_reference}" class="btn btn-secondary btn-sm" style="font-size: 0.75rem;">
+                                        Live Tracking ➔
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--non-veg);">Error communicating with server.</div>';
+            } finally {
+                if (btnRefresh) {
+                    btnRefresh.disabled = false;
+                    btnRefresh.textContent = '🔄 Refresh Orders';
+                }
             }
         }
 

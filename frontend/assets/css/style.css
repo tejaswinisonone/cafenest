@@ -1243,6 +1243,36 @@ a {
 .badge-cancelled { background: #F8D7DA; color: #721C24; }
 .badge-low-stock { background: #F8D7DA; color: #721C24; border: 1px solid #F5C6CB; }
 .badge-ok { background: #D1E7DD; color: #0F5132; }
+.badge-available { background: #D1E7DD; color: #0F5132; border: 1px solid #BADBCC; }
+.badge-occupied { background: #FFE8D6; color: #B35400; border: 1px solid #F8D2B3; }
+.badge-reserved { background: #CCE5FF; color: #004085; border: 1px solid #B8DAFF; }
+
+/* Table Management Cards */
+.cafe-table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.3rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: var(--transition);
+    position: relative;
+}
+.cafe-table-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+.cafe-table-card.status-available {
+    border-top: 4px solid var(--tertiary);
+}
+.cafe-table-card.status-occupied {
+    border-top: 4px solid var(--secondary);
+}
+.cafe-table-card.status-reserved {
+    border-top: 4px solid #0056B3;
+}
 
 /* Modal Styles */
 .modal-overlay {

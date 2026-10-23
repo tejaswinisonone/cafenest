@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout — CaféNest</title>
+    <meta name="description" content="Complete your CaféNest order. Review your artisan order summary, choose dine-in or takeaway, select payment, and place your order.">
+    <link rel="stylesheet" href="/frontend/assets/css/style.css">
+    <style>
+        .checkout-grid {
+            max-width: 1280px;
+            margin: 2rem auto 5rem auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: 1.4fr 0.9fr;
+            gap: 2.2rem;
+            align-items: start;
+        }
+        .step-crumbs {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+        .step-crumbs span.active {
+            color: var(--secondary);
+            font-weight: 700;
+        }
+        .checkout-section-title {
+            font-size: 1.25rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .checkout-section-title .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-full);
+            background: var(--primary);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+        }
+        .payment-choice-card {
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--surface-card);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .payment-choice-card.selected {
+            border-color: var(--secondary);
+            background: #FFF9F4;
+            box-shadow: 0 4px 14px var(--secondary-glow);
+        }
+        @media (max-width: 900px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand-logo">
+                <span class="logo-icon">☕</span>
+                <span>CaféNest</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/frontend/customer/menu.html" class="nav-link">Menu & Order</a></li>
+                    <li><a href="/frontend/customer/cart.html" class="nav-link">Basket</a></li>
+                    <li><a href="/frontend/customer/tracking.html" class="nav-link">Track Order</a></li>
+                </ul>
+            </nav>
+            <div class="nav-actions">
+                <a href="/frontend/customer/cart.html" class="cart-btn" aria-label="Cart">
+                    <span>🛒</span>
+                    <span>Basket</span>
+                    <span class="cart-badge" style="display: none;">0</span>
+                </a>
+                <div id="navAuthContainer"></div>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0 5rem 0;">
+        <div style="max-width: 1280px; margin: 0 auto; padding: 0 1.5rem;">
+            <div class="step-crumbs">
+                <a href="/frontend/customer/cart.html">Basket</a>
+                <span>➔</span>
+                <span class="active">Checkout & Order Placement</span>
+                <span>➔</span>
+                <span>Confirmation & Live Tracking</span>
+            </div>
+
+            <div class="section-header" style="text-align: left; margin-bottom: 2rem;">
+                <span class="section-tag">Finalize Your Order</span>
+                <h1 class="section-title">CaféNest Checkout</h1>
+                <p class="section-subtitle">Confirm your dining mode, contact information, and demonstration payment method.</p>
+            </div>
+        </div>
+
+        <div class="checkout-grid">
+            <!-- Left Column: Checkout Form & Details -->
+            <form id="checkoutForm" onsubmit="handleCheckoutSubmission(event)" style="display: flex; flex-direction: column; gap: 1.8rem;">
+                
+                <!-- 1. Customer Contact Details -->
+                <div class="cart-card">
+                    <h3 class="checkout-section-title">
+                        <span class="step-num">1</span>
+                        <span>Contact Information</span>
+                    </h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.2rem;">
+                        We'll use these details to associate your order and send order confirmation updates.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Full Name <span style="color: var(--secondary);">*</span></label>
+                            <input type="text" id="custName" class="form-input" required placeholder="e.g. Aarav Sharma">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number <span style="color: var(--secondary);">*</span></label>
+                            <input type="tel" id="custPhone" class="form-input" required placeholder="e.g. +91 9876543210">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address (Optional)</label>
+                        <input type="email" id="custEmail" class="form-input" placeholder="e.g. aarav@gmail.com">
+                    </div>
+                </div>
+
+                <!-- 2. Dining Service & Table Selection -->
+                <div class="cart-card">
+                    <h3 class="checkout-section-title">
+                        <span class="step-num">2</span>
+                        <span>Dining Mode & Table Service</span>
+                    </h3>
+
+                    <div class="order-type-picker">
+                        <div class="order-type-card selected" id="optDineIn" onclick="selectDiningMode('Dine-In')">
+                            <div style="font-size: 2rem; margin-bottom: 0.3rem;">🪑</div>
+                            <h5>Dine-In Table Service</h5>
+                            <p>Fresh service served to your cafe table</p>
+                        </div>
+                        <div class="order-type-card" id="optTakeaway" onclick="selectDiningMode('Takeaway')">
+                            <div style="font-size: 2rem; margin-bottom: 0.3rem;">🥡</div>
+                            <h5>Takeaway / Counter Pickup</h5>
+                            <p>Packaged in thermal insulated carrier</p>
+                        </div>
+                    </div>
+
+                    <div id="tableSelectorGroup" class="form-group" style="margin-top: 1.2rem;">
+                        <label class="form-label">Select Cafe Table <span style="color: var(--secondary);">*</span></label>
+                        <select id="checkoutTableSelect" class="form-select">
+                            <option value="">-- Choose an available table --</option>
+                        </select>
+                        <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 0.3rem;">
+                            Only tables with status 'Available' in MySQL can be reserved.
+                        </small>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1.2rem;">
+                        <label class="form-label">Special Kitchen / Barista Instructions</label>
+                        <textarea id="checkoutNotes" class="form-textarea" rows="2" placeholder="e.g. Extra hot flat white, oat milk, warm croissant, less ice..."></textarea>
+                    </div>
+                </div>
+
+                <!-- 3. Payment Method Selection (Simulated Demonstration) -->
+                <div class="cart-card">
+                    <h3 class="checkout-section-title">
+                        <span class="step-num">3</span>
+                        <span>Demonstration Payment Method</span>
+                    </h3>
+
+                    <!-- Demonstration Notice -->
+                    <div class="demo-banner">
+                        <span style="font-size: 1.4rem;">🎓</span>
+                        <div>
+                            <strong>College DBMS Lab Simulated Payment</strong>
+                            <div style="font-size: 0.8rem; opacity: 0.9;">No real bank transaction occurs. Recorded to MySQL `payments` table with `is_simulated = TRUE`.</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+                        <div class="payment-choice-card selected" id="payMethodUpi" onclick="selectPaymentChoice('Simulated_UPI')">
+                            <input type="radio" name="payRadio" id="radioUpi" checked style="accent-color: var(--secondary);">
+                            <div>
+                                <div style="font-weight: 700; color: var(--primary);">📱 Simulated UPI</div>
+                                <small style="color: var(--text-muted); font-size: 0.78rem;">Instant QR / UPI ID Verification</small>
+                            </div>
+                        </div>
+
+                        <div class="payment-choice-card" id="payMethodCash" onclick="selectPaymentChoice('Cash')">
+                            <input type="radio" name="payRadio" id="radioCash" style="accent-color: var(--secondary);">
+                            <div>
+                                <div style="font-weight: 700; color: var(--primary);">💵 Cash at Counter</div>
+                                <small style="color: var(--text-muted); font-size: 0.78rem;">Pay barista upon service</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UPI Details box -->
+                    <div id="upiDetailsBox" style="background: var(--surface-card); padding: 1.2rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 1.2rem;">
+                            <!-- Mock QR graphic -->
+                            <div style="background: #fff; padding: 6px; border-radius: var(--radius-sm); border: 1px solid var(--border); width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <svg width="68" height="68" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="100" height="100" fill="#FFFFFF"/>
+                                    <rect x="10" y="10" width="25" height="25" fill="#2C1E16"/>
+                                    <rect x="15" y="15" width="15" height="15" fill="#FFFFFF"/>
+                                    <rect x="18" y="18" width="9" height="9" fill="#D97736"/>
+                                    <rect x="65" y="10" width="25" height="25" fill="#2C1E16"/>
+                                    <rect x="70" y="15" width="15" height="15" fill="#FFFFFF"/>
+                                    <rect x="73" y="18" width="9" height="9" fill="#D97736"/>
+                                    <rect x="10" y="65" width="25" height="25" fill="#2C1E16"/>
+                                    <rect x="15" y="70" width="15" height="15" fill="#FFFFFF"/>
+                                    <rect x="18" y="73" width="9" height="9" fill="#D97736"/>
+                                    <rect x="42" y="38" width="16" height="16" fill="#D97736"/>
+                                    <rect x="75" y="75" width="12" height="12" fill="#2C1E16"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Simulated VPA / UPI ID:</div>
+                                <div style="font-weight: 700; color: var(--primary); font-size: 1rem;">cafenest@upi</div>
+                                <small style="color: var(--text-light); font-size: 0.78rem;">Transaction is automatically confirmed and audited in database.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden Idempotency Token -->
+                <input type="hidden" id="checkoutIdempotencyKey" value="">
+
+                <div style="margin-top: 0.5rem;">
+                    <button type="submit" id="btnPlaceOrder" class="btn btn-amber btn-lg" style="width: 100%; border-radius: var(--radius-full); font-size: 1.15rem; padding: 1rem;">
+                        Place Order & Confirm Payment (₹<span id="btnTotalDisplay">0.00</span>) ➔
+                    </button>
+                    <div id="checkoutErrorBox" style="display: none; margin-top: 1rem; padding: 0.9rem; border-radius: var(--radius-md); background: #F8D7DA; color: #721C24; border: 1px solid #F5C6CB; font-size: 0.88rem;"></div>
+                </div>
+            </form>
+
+            <!-- Right Column: Order Summary Bill Card -->
+            <div>
+                <div class="cart-card" style="position: sticky; top: 90px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.8rem; margin-bottom: 1.2rem;">
+                        <h3 style="font-size: 1.25rem;">Order Summary</h3>
+                        <a href="/frontend/customer/cart.html" style="font-size: 0.82rem; color: var(--secondary); font-weight: 600;">Edit Basket</a>
+                    </div>
+
+                    <!-- Line items list -->
+                    <div id="checkoutItemsList" style="display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 1.5rem; max-height: 320px; overflow-y: auto;">
+                        <!-- Injected dynamically -->
+                    </div>
+
+                    <!-- Bill Breakdown -->
+                    <div class="bill-summary">
+                        <div class="bill-row">
+                            <span>Subtotal</span>
+                            <span id="sumSubtotal">₹0.00</span>
+                        </div>
+                        <div class="bill-row">
+                            <span>5% GST (Taxes)</span>
+                            <span id="sumTax">₹0.00</span>
+                        </div>
+                        <div class="bill-row">
+                            <span>Service & Cutlery</span>
+                            <span style="color: var(--tertiary); font-weight: 600;">FREE</span>
+                        </div>
+                        <div class="bill-row total">
+                            <span>Final Total</span>
+                            <span id="sumGrandTotal" style="color: var(--secondary);">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; background: var(--surface-card); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border); font-size: 0.8rem; color: var(--text-muted);">
+                        🛡️ <strong>Authoritative Validation Guarantee:</strong><br>
+                        Item prices and stock availability are re-queried directly from MySQL during transaction execution.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-bottom">
+            <div>© 2026 CaféNest Systems. All rights reserved. Built with Python & MySQL.</div>
+        </div>
+    </footer>
+
+    <script src="/frontend/assets/js/app.js"></script>
+    <script>
+        let selectedDiningMode = 'Dine-In';
+        let selectedPaymentMethod = 'Simulated_UPI';
+        let isSubmitting = false;
+
+        async function initCheckout() {
+            if (!Cart.items || Cart.items.length === 0) {
+                showToast('Your basket is empty. Please add items to checkout.', 'info');
+                setTimeout(() => window.location.href = '/frontend/customer/menu.html', 1200);
+                return;
+            }
+
+            // Generate unique idempotency key for this checkout session
+            generateIdempotencyKey();
+
+            renderSummary();
+            await loadAvailableTables();
+            await prefillUserContact();
+        }
+
+        function generateIdempotencyKey() {
+            const key = 'IDEMP-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+            document.getElementById('checkoutIdempotencyKey').value = key;
+        }
+
+        function renderSummary() {
+            const list = document.getElementById('checkoutItemsList');
+            const items = Cart.items;
+
+            list.innerHTML = items.map(item => `
+                <div style="display: flex; gap: 0.8rem; align-items: center; border-bottom: 1px solid var(--border-light); padding-bottom: 0.6rem;">
+                    <img src="${item.image_url}" alt="${item.name}" style="width: 48px; height: 48px; border-radius: var(--radius-sm); object-fit: cover;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 0.92rem; color: var(--primary);">${item.name}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">${item.quantity} × ₹${item.price.toFixed(2)}</div>
+                    </div>
+                    <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary);">
+                        ₹${(item.quantity * item.price).toFixed(2)}
+                    </div>
+                </div>
+            `).join('');
+
+            const subtotal = Cart.getSubtotal();
+            const tax = subtotal * 0.05;
+            const grandTotal = subtotal + tax;
+
+            document.getElementById('sumSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('sumTax').textContent = `₹${tax.toFixed(2)}`;
+            document.getElementById('sumGrandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+            document.getElementById('btnTotalDisplay').textContent = grandTotal.toFixed(2);
+        }
+
+        async function loadAvailableTables() {
+            try {
+                const res = await fetch('/api/tables');
+                const result = await res.json();
+                if (result.success) {
+                    const select = document.getElementById('checkoutTableSelect');
+                    select.innerHTML = '<option value="">-- Choose an available table --</option>' +
+                        result.data.map(t => {
+                            const isAvail = t.status === 'Available';
+                            return `<option value="${t.table_id}" ${!isAvail ? 'disabled' : ''}>
+                                ${t.table_number} (${t.seating_capacity} seats • ${t.location_area}) — [${t.status.toUpperCase()}]
+                            </option>`;
+                        }).join('');
+                }
+            } catch (e) {
+                console.error('Failed to load tables:', e);
+            }
+        }
+
+        async function prefillUserContact() {
+            try {
+                const res = await fetch('/api/auth/me');
+                const result = await res.json();
+                if (result.success && result.authenticated && result.data) {
+                    const u = result.data;
+                    if (u.name) document.getElementById('custName').value = u.name;
+                    if (u.phone) document.getElementById('custPhone').value = u.phone;
+                    if (u.email) document.getElementById('custEmail').value = u.email;
+                }
+            } catch (e) {
+                // guest user, do nothing
+            }
+        }
+
+        function selectDiningMode(mode) {
+            selectedDiningMode = mode;
+            const optDine = document.getElementById('optDineIn');
+            const optTake = document.getElementById('optTakeaway');
+            const tableGroup = document.getElementById('tableSelectorGroup');
+
+            if (mode === 'Dine-In') {
+                optDine.classList.add('selected');
+                optTake.classList.remove('selected');
+                tableGroup.style.display = 'block';
+            } else {
+                optTake.classList.add('selected');
+                optDine.classList.remove('selected');
+                tableGroup.style.display = 'none';
+            }
+        }
+
+        function selectPaymentChoice(method) {
+            selectedPaymentMethod = method;
+            const cardUpi = document.getElementById('payMethodUpi');
+            const cardCash = document.getElementById('payMethodCash');
+            const upiBox = document.getElementById('upiDetailsBox');
+            const radioUpi = document.getElementById('radioUpi');
+            const radioCash = document.getElementById('radioCash');
+
+            if (method === 'Simulated_UPI') {
+                cardUpi.classList.add('selected');
+                cardCash.classList.remove('selected');
+                radioUpi.checked = true;
+                upiBox.style.display = 'block';
+            } else {
+                cardCash.classList.add('selected');
+                cardUpi.classList.remove('selected');
+                radioCash.checked = true;
+                upiBox.style.display = 'none';
+            }
+        }
+
+        async function handleCheckoutSubmission(e) {
+            e.preventDefault();
+            const errBox = document.getElementById('checkoutErrorBox');
+            errBox.style.display = 'none';
+
+            if (isSubmitting) return; // Prevent double submission
+
+            if (!Cart.items || Cart.items.length === 0) {
+                showToast('Your basket is empty.', 'error');
+                return;
+            }
+
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            const email = document.getElementById('custEmail').value.trim();
+            const tableId = document.getElementById('checkoutTableSelect').value;
+            const notes = document.getElementById('checkoutNotes').value.trim();
+            const idempotencyKey = document.getElementById('checkoutIdempotencyKey').value;
+
+            if (selectedDiningMode === 'Dine-In' && !tableId) {
+                errBox.textContent = 'Please choose an available cafe table for dine-in service.';
+                errBox.style.display = 'block';
+                document.getElementById('checkoutTableSelect').focus();
+                return;
+            }
+
+            const btn = document.getElementById('btnPlaceOrder');
+            isSubmitting = true;
+            btn.disabled = true;
+            btn.textContent = 'Validating SQL & Processing Order...';
+
+            const payload = {
+                items: Cart.items.map(i => ({ menu_id: i.menu_id, quantity: i.quantity })),
+                order_type: selectedDiningMode,
+                table_id: selectedDiningMode === 'Dine-In' ? parseInt(tableId) : null,
+                customer_name: name,
+                customer_phone: phone,
+                customer_email: email,
+                special_instructions: notes,
+                payment_method: selectedPaymentMethod,
+                idempotency_key: idempotencyKey
+            };
+
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    Cart.clear();
+                    showToast('Order confirmed successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = `/frontend/customer/tracking.html?order_id=${result.data.order_id}&ref=${result.data.order_reference}&confirmed=true`;
+                    }, 600);
+                } else {
+                    errBox.textContent = result.message || 'Order placement failed.';
+                    errBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Place Order & Confirm Payment ➔';
+                    isSubmitting = false;
+                }
+            } catch (err) {
+                errBox.textContent = 'Network or server communication error. Please try again.';
+                errBox.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Place Order & Confirm Payment ➔';
+                isSubmitting = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initCheckout);
+    </script>
+</body>
+</html>

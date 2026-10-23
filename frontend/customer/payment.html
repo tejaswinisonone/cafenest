@@ -104,20 +104,24 @@
                     </svg>
                 </div>
 
-                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-                    Simulated UPI ID: <strong style="color: var(--primary);">cafenest@upi</strong>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+                    Merchant UPI ID: <strong style="color: var(--primary);">cafenest@upi</strong>
+                </div>
+                <div class="form-group" style="text-align: left; max-width: 320px; margin: 0 auto 0.8rem auto;">
+                    <label class="form-label" style="font-size: 0.8rem;">Your Demo UPI ID / VPA</label>
+                    <input type="text" id="inputUpiId" class="form-input" placeholder="e.g. customer@okhdfcbank" value="demo.patron@okhdfcbank" style="font-size: 0.85rem;">
                 </div>
                 <div style="font-size: 0.78rem; color: var(--text-light);">
-                    Clicking the button below simulates instant bank verification and records the transaction in MySQL.
+                    Clicking below simulates bank verification and records the transaction in MySQL with <code>is_simulated = TRUE</code>.
                 </div>
             </div>
 
             <!-- Method 2: Cash View -->
             <div id="viewCash" class="qr-container" style="display: none;">
                 <div style="font-size: 3rem; margin-bottom: 0.5rem;">💵</div>
-                <h4 style="color: var(--primary); margin-bottom: 0.4rem;">Cash at Counter</h4>
+                <h4 style="color: var(--primary); margin-bottom: 0.4rem;">Cash at Counter / Table</h4>
                 <p style="font-size: 0.88rem; color: var(--text-muted); max-width: 380px; margin: 0 auto;">
-                    Your order will be sent to the kitchen immediately. Please present your Order Reference number to the barista upon collection or when served at your table.
+                    Your order ticket will be forwarded to the kitchen with <strong>Payment Status: Pending</strong>. Please settle your bill at the counter or with your table server.
                 </p>
             </div>
 
@@ -190,13 +194,16 @@
             btn.disabled = true;
             btn.textContent = 'Processing Simulated Payment...';
 
+            const upiId = document.getElementById('inputUpiId') ? document.getElementById('inputUpiId').value.trim() : '';
+
             try {
                 const res = await fetch('/api/payments/demo', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         order_id: parseInt(orderId),
-                        method: chosenMethod
+                        method: chosenMethod,
+                        upi_id: chosenMethod === 'Simulated_UPI' ? upiId : null
                     })
                 });
 

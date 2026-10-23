@@ -67,42 +67,162 @@
         <main class="admin-main">
             <!-- 1. DASHBOARD OVERVIEW TAB -->
             <section id="tabContent-dashboard" class="tab-pane">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem;">
+                <!-- Header with Refresh -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <span class="section-tag">Real-Time Metrics</span>
-                        <h1 style="font-size: 2rem; color: var(--primary);">Cafe Operations Dashboard</h1>
+                        <h1 style="font-size: 2rem; color: var(--primary); margin: 0.2rem 0;">Administrator Operations Dashboard</h1>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Live sales calculations, kitchen order queue, table status and inventory analytics powered by MySQL.</p>
                     </div>
-                    <button onclick="refreshDashboard()" class="btn btn-secondary btn-sm">🔄 Refresh Data</button>
+                    <div style="display: flex; gap: 0.6rem; align-items: center;">
+                        <span id="dashLastUpdated" style="font-size: 0.78rem; color: var(--text-light);"></span>
+                        <button onclick="refreshDashboard()" class="btn btn-secondary btn-sm" id="btnRefreshDash">🔄 Refresh Data</button>
+                    </div>
                 </div>
 
-                <!-- Metrics Grid -->
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-icon">💰</div>
-                        <div class="metric-info">
-                            <h5>Today's Sales</h5>
-                            <div class="metric-value" id="kpiTodaySales">₹0.00</div>
+                <!-- Date-Based Sales Summary & Filters -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.2rem 1.5rem; margin-bottom: 1.8rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h4 style="font-size: 0.95rem; color: var(--primary); text-transform: uppercase; font-weight: 700; margin-bottom: 0.3rem;">
+                                📅 Date Range Filter
+                            </h4>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Filter sales, orders, and popular items by server-validated dates (YYYY-MM-DD).</p>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <label for="dashStartDate" style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">From:</label>
+                                <input type="date" id="dashStartDate" class="form-input" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <label for="dashEndDate" style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">To:</label>
+                                <input type="date" id="dashEndDate" class="form-input" style="padding: 0.35rem 0.6rem; font-size: 0.85rem;">
+                            </div>
+                            <button onclick="applyDashboardDateFilter()" class="btn btn-primary btn-sm">Filter</button>
+                            <button onclick="setDashboardDateShortcut('today')" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.4rem 0.7rem;">Today</button>
+                            <button onclick="setDashboardDateShortcut('7days')" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.4rem 0.7rem;">7 Days</button>
+                            <button onclick="setDashboardDateShortcut('30days')" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.4rem 0.7rem;">30 Days</button>
+                            <button onclick="clearDashboardDateFilter()" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.4rem 0.7rem;">All Time</button>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-icon">🔔</div>
-                        <div class="metric-info">
-                            <h5>Active Orders</h5>
-                            <div class="metric-value" id="kpiActiveOrders">0</div>
+                    <div id="dashFilterActiveBanner" style="display: none; margin-top: 0.8rem; font-size: 0.82rem; color: var(--secondary); font-weight: 600;">
+                        Showing filtered metrics for <span id="dashFilterRangeText"></span>.
+                    </div>
+                </div>
+
+                <!-- Quick Navigation Bar -->
+                <div style="margin-bottom: 1.8rem;">
+                    <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; color: var(--text-light); margin-bottom: 0.6rem;">
+                        Quick Navigation
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.8rem;">
+                        <div onclick="switchAdminTab('menu')" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; transition: var(--transition);" onmouseover="this.style.borderColor='var(--secondary)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <span style="font-size: 1.3rem;">🥐</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Menu</div>
+                                <small style="color: var(--text-muted); font-size: 0.72rem;">Items & Categories</small>
+                            </div>
+                        </div>
+                        <div onclick="switchAdminTab('orders')" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; transition: var(--transition);" onmouseover="this.style.borderColor='var(--secondary)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <span style="font-size: 1.3rem;">📋</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Orders</div>
+                                <small style="color: var(--text-muted); font-size: 0.72rem;">Kitchen Queue</small>
+                            </div>
+                        </div>
+                        <div onclick="switchAdminTab('tables')" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; transition: var(--transition);" onmouseover="this.style.borderColor='var(--secondary)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <span style="font-size: 1.3rem;">🪑</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Tables</div>
+                                <small style="color: var(--text-muted); font-size: 0.72rem;">Table Management</small>
+                            </div>
+                        </div>
+                        <div onclick="switchAdminTab('staff')" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; transition: var(--transition);" onmouseover="this.style.borderColor='var(--secondary)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <span style="font-size: 1.3rem;">👥</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Staff</div>
+                                <small style="color: var(--text-muted); font-size: 0.72rem;">Roles & Team</small>
+                            </div>
+                        </div>
+                        <div onclick="switchAdminTab('inventory'); openAddSupplierModal();" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; transition: var(--transition);" onmouseover="this.style.borderColor='var(--secondary)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <span style="font-size: 1.3rem;">🚚</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Suppliers</div>
+                                <small style="color: var(--text-muted); font-size: 0.72rem;">Vendor Partners</small>
+                            </div>
+                        </div>
+                        <div onclick="switchAdminTab('inventory')" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; transition: var(--transition);" onmouseover="this.style.borderColor='var(--secondary)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <span style="font-size: 1.3rem;">📦</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Inventory</div>
+                                <small style="color: var(--text-muted); font-size: 0.72rem;">Stock & Reorder</small>
+                            </div>
+                        </div>
+                        <div onclick="switchAdminTab('reports')" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0.85rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; transition: var(--transition);" onmouseover="this.style.borderColor='var(--secondary)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <span style="font-size: 1.3rem;">📈</span>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary);">Reports</div>
+                                <small style="color: var(--text-muted); font-size: 0.72rem;">Sales Analytics</small>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- 5 Metrics Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1.2rem; margin-bottom: 2rem;">
+                    <!-- 1. Total Orders -->
                     <div class="metric-card">
-                        <div class="metric-icon">🪑</div>
-                        <div class="metric-info">
-                            <h5>Occupied Tables</h5>
-                            <div class="metric-value" id="kpiTablesRatio">0 / 12</div>
+                        <div class="metric-icon" style="color: var(--primary);">📦</div>
+                        <div class="metric-info" style="flex: 1;">
+                            <h5>Total Orders</h5>
+                            <div class="metric-value" id="kpiTotalOrders">0</div>
+                            <small style="font-size: 0.72rem; color: var(--text-muted);" id="kpiTotalOrdersSub">All recorded orders in range</small>
                         </div>
                     </div>
+
+                    <!-- 2. Total Sales -->
                     <div class="metric-card">
+                        <div class="metric-icon" style="color: var(--secondary);">💰</div>
+                        <div class="metric-info" style="flex: 1;">
+                            <h5>Total Sales</h5>
+                            <div class="metric-value" id="kpiTotalSales">₹0.00</div>
+                            <small style="font-size: 0.72rem; color: var(--text-muted); display: block;" id="kpiSalesBreakdown">
+                                Settled: <span id="kpiSettledSales">₹0.00</span> • Pending: <span id="kpiPendingSales">₹0.00</span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- 3. Pending Orders -->
+                    <div class="metric-card">
+                        <div class="metric-icon" style="color: #B35400;">⏳</div>
+                        <div class="metric-info" style="flex: 1;">
+                            <h5>Pending Orders</h5>
+                            <div class="metric-value" id="kpiPendingOrders" style="color: #B35400;">0</div>
+                            <small style="font-size: 0.72rem; color: var(--text-muted);" id="kpiPendingOrdersSub">
+                                Active Queue: <span id="kpiActiveOrders">0</span>
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- 4. Completed Orders -->
+                    <div class="metric-card">
+                        <div class="metric-icon" style="color: var(--tertiary);">✅</div>
+                        <div class="metric-info" style="flex: 1;">
+                            <h5>Completed Orders</h5>
+                            <div class="metric-value" id="kpiCompletedOrders" style="color: var(--tertiary);">0</div>
+                            <small style="font-size: 0.72rem; color: var(--text-muted);">Fulfilled & served</small>
+                        </div>
+                    </div>
+
+                    <!-- 5. Low-Stock Inventory Items -->
+                    <div class="metric-card" style="cursor: pointer;" onclick="openLowStockModal()" title="Click to view low stock items">
                         <div class="metric-icon" style="color: var(--non-veg);">⚠️</div>
-                        <div class="metric-info">
-                            <h5>Low Stock Alerts</h5>
-                            <div class="metric-value" id="kpiLowStock">0</div>
+                        <div class="metric-info" style="flex: 1;">
+                            <h5>Low-Stock Items</h5>
+                            <div class="metric-value" id="kpiLowStock" style="color: var(--non-veg);">0</div>
+                            <small style="font-size: 0.72rem; color: var(--secondary); font-weight: 600;">
+                                View Items ➔
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -110,62 +230,117 @@
                 <!-- Recent Orders Queue -->
                 <div class="data-table-container">
                     <div class="table-header-bar">
-                        <h3 style="font-size: 1.2rem;">Live Kitchen Queue</h3>
+                        <div>
+                            <h3 style="font-size: 1.2rem; margin: 0; color: var(--primary);">Recent Live Orders</h3>
+                            <small style="color: var(--text-muted); font-size: 0.8rem;">Actual customer orders fetched from MySQL</small>
+                        </div>
                         <a href="javascript:void(0)" onclick="switchAdminTab('orders')" style="font-size: 0.85rem; color: var(--secondary); font-weight: 600;">View All Orders ➔</a>
                     </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Order Ref</th>
-                                <th>Time</th>
-                                <th>Customer</th>
-                                <th>Service</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th>Quick Advance</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dashOrdersTbody">
-                            <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading live queue...</td></tr>
-                        </tbody>
-                    </table>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order Ref</th>
+                                    <th>Date & Time</th>
+                                    <th>Customer</th>
+                                    <th>Dining Service</th>
+                                    <th>Total Amount</th>
+                                    <th>Payment Status</th>
+                                    <th>Order Status</th>
+                                    <th>Quick Advance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashOrdersTbody">
+                                <tr><td colspan="8" style="text-align: center; padding: 2rem;">Loading recent orders from MySQL...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Top Popular Items -->
                 <div class="data-table-container">
                     <div class="table-header-bar">
-                        <h3 style="font-size: 1.2rem;">Top Selling Artisan Delicacies</h3>
+                        <div>
+                            <h3 style="font-size: 1.2rem; margin: 0; color: var(--primary);">Popular Menu Items</h3>
+                            <small style="color: var(--text-muted); font-size: 0.8rem;">Ranked by actual quantity sold from order-item records (excluding cancelled orders)</small>
+                        </div>
                     </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Item Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Total Quantity Sold</th>
-                                <th>Total Revenue</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dashPopularTbody">
-                            <!-- Popular items -->
-                        </tbody>
-                    </table>
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">Rank</th>
+                                    <th>Item Name</th>
+                                    <th>Category</th>
+                                    <th>Unit Price</th>
+                                    <th>Quantity Sold</th>
+                                    <th>Total Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashPopularTbody">
+                                <tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading popular items...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
             <!-- 2. LIVE ORDERS QUEUE TAB -->
             <section id="tabContent-orders" class="tab-pane" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <span class="section-tag">Kitchen & Counter</span>
-                        <h1 style="font-size: 2rem; color: var(--primary);">Order Management Queue</h1>
+                        <h1 style="font-size: 2rem; color: var(--primary); margin: 0.2rem 0;">Order Management & Operations</h1>
+                        <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">Search, filter, inspect details, record payments, and advance workflow states with database auditing.</p>
                     </div>
                     <div style="display: flex; gap: 0.6rem;">
-                        <button class="cat-pill active" onclick="filterOrderQueue(null, this)">All Orders</button>
-                        <button class="cat-pill" onclick="filterOrderQueue('Pending', this)">Pending</button>
-                        <button class="cat-pill" onclick="filterOrderQueue('Preparing', this)">Preparing</button>
-                        <button class="cat-pill" onclick="filterOrderQueue('Ready', this)">Ready</button>
-                        <button class="cat-pill" onclick="filterOrderQueue('Completed', this)">Completed</button>
+                        <button onclick="loadAdminOrdersQueue()" class="btn btn-secondary btn-sm">🔄 Refresh Orders</button>
+                    </div>
+                </div>
+
+                <!-- Search & Multi-Filter Bar -->
+                <div style="background: var(--surface); padding: 1.2rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                    <!-- Row 1: Search Query -->
+                    <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="adminOrderSearch" placeholder="Search by Order Ref, Customer Name, Phone, Email, Table..." class="form-input" style="flex: 1; min-width: 260px;" onkeydown="if(event.key==='Enter') applyAdminOrderFilters()">
+                        <button onclick="applyAdminOrderFilters()" class="btn btn-primary btn-sm">🔍 Search</button>
+                        <button onclick="resetAdminOrderFilters()" class="btn btn-secondary btn-sm">Reset</button>
+                    </div>
+
+                    <!-- Row 2: Dropdown Filters -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.8rem;">
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Order Status</label>
+                            <select id="adminFilterStatus" class="form-select" style="font-size: 0.85rem;" onchange="applyAdminOrderFilters()">
+                                <option value="">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Preparing">Preparing</option>
+                                <option value="Ready">Ready</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Payment Method</label>
+                            <select id="adminFilterPayMethod" class="form-select" style="font-size: 0.85rem;" onchange="applyAdminOrderFilters()">
+                                <option value="">All Methods</option>
+                                <option value="Simulated_UPI">Simulated UPI</option>
+                                <option value="Cash">Cash at Counter</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Payment Status</label>
+                            <select id="adminFilterPayStatus" class="form-select" style="font-size: 0.85rem;" onchange="applyAdminOrderFilters()">
+                                <option value="">All Payment States</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.75rem; margin-bottom: 0.2rem;">Date Filter</label>
+                            <input type="date" id="adminFilterDate" class="form-input" style="font-size: 0.85rem;" onchange="applyAdminOrderFilters()">
+                        </div>
                     </div>
                 </div>
 
@@ -175,12 +350,13 @@
                             <tr>
                                 <th>Order Ref</th>
                                 <th>Date & Time</th>
-                                <th>Customer & Phone</th>
+                                <th>Customer</th>
                                 <th>Table / Mode</th>
                                 <th>Total</th>
                                 <th>Payment</th>
-                                <th>Current Status</th>
-                                <th>Update Workflow Status</th>
+                                <th>Order Status</th>
+                                <th>Advance Workflow</th>
+                                <th>Details</th>
                             </tr>
                         </thead>
                         <tbody id="ordersManagementTbody">
@@ -224,14 +400,62 @@
 
             <!-- 4. CAFE TABLES GRID TAB -->
             <section id="tabContent-tables" class="tab-pane" style="display: none;">
-                <div style="margin-bottom: 1.8rem;">
-                    <span class="section-tag">Floor Plan & Seating</span>
-                    <h1 style="font-size: 2rem; color: var(--primary);">Cafe Tables & Occupancy</h1>
-                    <p style="color: var(--text-muted); font-size: 0.95rem;">Manage real-time seating availability across all dining areas.</p>
+                <!-- Header with Actions -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <span class="section-tag">Floor Plan & Seating Operations</span>
+                        <h1 style="font-size: 2rem; color: var(--primary); margin: 0.2rem 0;">Café Table Management</h1>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Configure table numbers, seating capacities, locations, live occupancy tracking and safe table lifecycle maintenance.</p>
+                    </div>
+                    <div style="display: flex; gap: 0.8rem; align-items: center;">
+                        <button onclick="loadAdminTables()" class="btn btn-secondary btn-sm">🔄 Refresh Tables</button>
+                        <button onclick="openAddTableModal()" class="btn btn-primary btn-sm">+ Add New Table</button>
+                    </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem;" id="tablesGridContainer">
-                    <!-- Tables cards -->
+                <!-- Live Summary Statistics Bar -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; text-align: center; box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700;">Total Tables</div>
+                        <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary); font-family: 'Playfair Display', serif;" id="tblSummaryTotal">0</div>
+                    </div>
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; text-align: center; box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--tertiary); font-weight: 700;">Available</div>
+                        <div style="font-size: 1.6rem; font-weight: 700; color: var(--tertiary); font-family: 'Playfair Display', serif;" id="tblSummaryAvailable">0</div>
+                    </div>
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; text-align: center; box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--secondary); font-weight: 700;">Occupied</div>
+                        <div style="font-size: 1.6rem; font-weight: 700; color: var(--secondary); font-family: 'Playfair Display', serif;" id="tblSummaryOccupied">0</div>
+                    </div>
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; text-align: center; box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: #0056B3; font-weight: 700;">Reserved</div>
+                        <div style="font-size: 1.6rem; font-weight: 700; color: #0056B3; font-family: 'Playfair Display', serif;" id="tblSummaryReserved">0</div>
+                    </div>
+                    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; text-align: center; box-shadow: var(--shadow-sm);">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700;">Total Seating</div>
+                        <div style="font-size: 1.6rem; font-weight: 700; color: var(--primary); font-family: 'Playfair Display', serif;" id="tblSummaryCapacity">0 seats</div>
+                    </div>
+                </div>
+
+                <!-- Table Filters & Search Toolbar -->
+                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.2rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="tableStatusFilterPills">
+                        <button onclick="filterAdminTablesByStatus('All')" class="btn btn-sm btn-secondary active-pill" id="pillTblAll" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;">All Tables</button>
+                        <button onclick="filterAdminTablesByStatus('Available')" class="btn btn-sm btn-secondary" id="pillTblAvailable" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;">Available</button>
+                        <button onclick="filterAdminTablesByStatus('Occupied')" class="btn btn-sm btn-secondary" id="pillTblOccupied" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;">Occupied</button>
+                        <button onclick="filterAdminTablesByStatus('Reserved')" class="btn btn-sm btn-secondary" id="pillTblReserved" style="padding: 0.35rem 0.8rem; font-size: 0.82rem;">Reserved</button>
+                    </div>
+
+                    <div style="display: flex; gap: 0.6rem; align-items: center; flex: 1; max-width: 380px;">
+                        <input type="text" id="adminTableSearchInput" class="form-input" placeholder="Search by Table # or Location Area..." style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" oninput="renderAdminTablesGrid()">
+                    </div>
+                </div>
+
+                <!-- Tables Grid Container -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.5rem;" id="tablesGridContainer">
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: var(--surface); border-radius: var(--radius-lg); border: 1px dashed var(--border);">
+                        Loading café tables from MySQL...
+                    </div>
                 </div>
             </section>
 
@@ -531,6 +755,219 @@
                         <button type="submit" class="btn btn-primary btn-sm">Create Staff</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details & Audit Trail Modal -->
+    <div class="modal-overlay" id="adminOrderDetailModal">
+        <div class="modal-card" style="max-width: 720px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modalOrderRefTitle" style="font-size: 1.25rem; color: var(--primary); margin: 0;">Order Details</h3>
+                    <small style="color: var(--text-muted);" id="modalOrderDateSubtitle">Placed on ...</small>
+                </div>
+                <button onclick="closeModal('adminOrderDetailModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 1.2rem;">
+                
+                <!-- Customer & Service Overview -->
+                <div style="background: var(--surface-card); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; font-size: 0.88rem;">
+                    <div>
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700;">Customer Information</div>
+                        <div style="font-weight: 600; color: var(--primary);" id="modalCustName">Aarav Sharma</div>
+                        <div style="color: var(--text-muted);" id="modalCustContact">+91 9876543210 | aarav@gmail.com</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700;">Dining Service</div>
+                        <div style="font-weight: 600; color: var(--primary);" id="modalOrderType">Dine-In • Table 5</div>
+                        <div style="color: var(--text-muted); font-size: 0.82rem;" id="modalSpecialInstructions">None</div>
+                    </div>
+                </div>
+
+                <!-- Ordered Items Table -->
+                <div>
+                    <h4 style="font-size: 0.95rem; text-transform: uppercase; color: var(--secondary); margin-bottom: 0.5rem; font-weight: 700;">Ordered Line Items</h4>
+                    <table class="data-table" style="font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalOrderItemsTbody">
+                            <!-- Items injected -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totals & Payment Summary -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: var(--surface); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+                    <div>
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); font-weight: 700;">Payment Record</div>
+                        <div style="font-weight: 600; color: var(--primary); margin-top: 0.2rem;" id="modalPayMethodStatus">
+                            Simulated_UPI • <span class="badge badge-completed">Completed</span>
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);" id="modalPayRef">Ref: UPI-DEMO-12345678</div>
+                        <div id="modalConfirmCashContainer" style="margin-top: 0.5rem; display: none;">
+                            <button onclick="handleConfirmCashModal()" class="btn btn-amber btn-sm" style="font-size: 0.75rem; padding: 0.3rem 0.6rem;">
+                                💵 Settle / Confirm Cash Payment
+                            </button>
+                        </div>
+                    </div>
+                    <div style="text-align: right; font-size: 0.88rem;">
+                        <div style="color: var(--text-muted);">Subtotal: <span id="modalSubtotal">₹0.00</span></div>
+                        <div style="color: var(--text-muted);">GST (5%): <span id="modalTax">₹0.00</span></div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-top: 0.3rem; font-family: 'Playfair Display', serif;">
+                            Total: <span id="modalTotal">₹0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workflow Status Transition Box -->
+                <div style="background: var(--surface-card); padding: 1rem; border-radius: var(--radius-sm); border: 1.5px solid var(--border-light);">
+                    <h4 style="font-size: 0.95rem; text-transform: uppercase; color: var(--primary); margin-bottom: 0.6rem; font-weight: 700;">
+                        Workflow Status Transition (Server-Enforced)
+                    </h4>
+                    <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            <span style="font-size: 0.8rem; color: var(--text-light);">Current Status:</span>
+                            <span class="badge" id="modalCurrentStatusBadge" style="margin-left: 0.3rem;">Pending</span>
+                        </div>
+                        <div style="flex: 1; min-width: 160px;">
+                            <select id="modalNextStatusSelect" class="form-select" style="font-size: 0.85rem;"></select>
+                        </div>
+                        <div style="flex: 1.5; min-width: 200px;">
+                            <input type="text" id="modalStatusNotes" class="form-input" placeholder="Staff note / reason..." style="font-size: 0.85rem;">
+                        </div>
+                        <button onclick="handleAdvanceStatusFromModal()" class="btn btn-primary btn-sm" id="btnUpdateStatusModal">
+                            Update Status ➔
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status History Audit Trail -->
+                <div>
+                    <h4 style="font-size: 0.95rem; text-transform: uppercase; color: var(--secondary); margin-bottom: 0.5rem; font-weight: 700;">
+                        Status Transition Audit Trail (MySQL)
+                    </h4>
+                    <div style="max-height: 180px; overflow-y: auto;">
+                        <table class="data-table" style="font-size: 0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th>Transition</th>
+                                    <th>Staff Member</th>
+                                    <th>Timestamp</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalStatusHistoryTbody">
+                                <!-- History records -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Add / Edit Cafe Table Modal -->
+    <div class="modal-overlay" id="adminTableModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 1.25rem; color: var(--primary); margin: 0;" id="tableModalTitle">Add New Café Table</h3>
+                <button onclick="closeModal('adminTableModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="adminTableForm" onsubmit="handleSaveTable(event)">
+                    <input type="hidden" id="adminTableId">
+
+                    <div class="form-group">
+                        <label class="form-label">Table Number / Label <span style="color: var(--secondary);">*</span></label>
+                        <input type="text" id="adminTableNumber" class="form-input" required placeholder="e.g. Table 13 or T-13">
+                        <small style="color: var(--text-muted); font-size: 0.78rem;">Must be unique within the café location.</small>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label class="form-label">Café Association</label>
+                        <input type="text" id="adminTableCafeName" class="form-input" value="CaféNest Flagship Roastery" required placeholder="Café location name">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Seating Capacity <span style="color: var(--secondary);">*</span></label>
+                            <input type="number" id="adminTableCapacity" class="form-input" required min="1" max="50" placeholder="e.g. 4">
+                            <small style="color: var(--text-muted); font-size: 0.78rem;">Positive integer (> 0)</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Location Area</label>
+                            <select id="adminTableArea" class="form-select">
+                                <option value="Main Dining">Main Dining</option>
+                                <option value="Window Bay">Window Bay</option>
+                                <option value="Terrace Garden">Terrace Garden</option>
+                                <option value="Bar Counter">Bar Counter</option>
+                                <option value="Quiet Study Zone">Quiet Study Zone</option>
+                                <option value="Private Lounge">Private Lounge</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label class="form-label">Table Status</label>
+                        <select id="adminTableStatus" class="form-select">
+                            <option value="Available">Available</option>
+                            <option value="Occupied">Occupied</option>
+                            <option value="Reserved">Reserved</option>
+                        </select>
+                    </div>
+
+                    <div id="tableModalError" style="display: none; margin-top: 1rem; padding: 0.6rem 0.8rem; background: #F8D7DA; color: #721C24; border-radius: var(--radius-sm); font-size: 0.85rem;"></div>
+
+                    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.8rem;">
+                        <button type="button" onclick="closeModal('adminTableModal')" class="btn btn-secondary btn-sm">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm" id="btnSaveTable">Save Table</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Inventory Items Modal -->
+    <div class="modal-overlay" id="adminLowStockModal">
+        <div class="modal-card" style="max-width: 680px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 1.25rem; color: var(--non-veg); margin: 0;">⚠️ Low-Stock Inventory Alerts</h3>
+                    <small style="color: var(--text-muted);">Ingredients and supplies at or below configured reorder levels</small>
+                </div>
+                <button onclick="closeModal('adminLowStockModal')" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="max-height: 380px; overflow-y: auto;">
+                    <table class="data-table" style="font-size: 0.85rem;">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Current Stock</th>
+                                <th>Reorder Level</th>
+                                <th>Supplier</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lowStockModalTbody">
+                            <tr><td colspan="5" style="text-align: center; padding: 1.5rem;">Loading low stock records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <button onclick="closeModal('adminLowStockModal'); switchAdminTab('inventory');" class="btn btn-primary btn-sm">
+                        📦 Go to Inventory & Stock In
+                    </button>
+                    <button type="button" onclick="closeModal('adminLowStockModal')" class="btn btn-secondary btn-sm">Close</button>
+                </div>
             </div>
         </div>
     </div>
